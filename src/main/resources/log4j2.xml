@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
-    <Properties>
-        <Property name="logPath">log</Property>
-        <Property name="rollingFileName">cucumber</Property>
-    </Properties>
+<Configuration status="warn" shutdownHook="disable">
     <Appenders>
-        <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="[%highlight{%-5level}] %msg%n"/>
+        <Console name="Console">
+            <PatternLayout pattern="[%highlight{%d{HH:mm:ss}} %highlight{%level}]: %highlight{%msg{nolookups}}%n"/>
         </Console>
-        <RollingFile name="rollingFile" fileName="${logPath}/${rollingFileName}.log"
-                     filePattern="${logPath}/${rollingFileName}_%d{yyyy-MM-dd}.log">
-            <PatternLayout pattern="[%highlight{%-5level}] %msg%n"/>
+        <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.zip">
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] [%logger]: %replace{%msg{nolookups}}{(?i)\u00A7[0-9A-FK-OR]}{}%n" charset="UTF-8"/>
             <Policies>
-                <!-- Causes a rollover if the log file is older than the current JVM's start time -->
+                <TimeBasedTriggeringPolicy/>
                 <OnStartupTriggeringPolicy/>
-                <!-- Causes a rollover once the date/time pattern no longer applies to the active file -->
-                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
             </Policies>
-        </RollingFile>
+            <DefaultRolloverStrategy max="99"/>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="DebugFile" fileName="logs/debug.log" filePattern="logs/debug-%i.log.zip">
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level] [%logger]: %replace{%msg{nolookups}}{(?i)\u00A7[0-9A-FK-OR]}{}%n" charset="UTF-8"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="200MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingRandomAccessFile>
     </Appenders>
     <Loggers>
-        <Root level="DEBUG" additivity="false">
-            <AppenderRef ref="console"/>
-            <AppenderRef ref="rollingFile"/>
+        <Root level="all">
+            <AppenderRef ref="Console" level="INFO"/>
+            <AppenderRef ref="File" level="INFO"/>
+            <AppenderRef ref="DebugFile" level="DEBUG"/>
         </Root>
     </Loggers>
 </Configuration>
