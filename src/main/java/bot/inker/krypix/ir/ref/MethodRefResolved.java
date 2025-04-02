@@ -2,7 +2,7 @@ package bot.inker.krypix.ir.ref;
 
 import bot.inker.krypix.KrypixMethod;
 
-public class MethodRefResolved implements MethodRef {
+public final class MethodRefResolved implements MethodRef {
   private final KrypixMethod method;
 
   public MethodRefResolved(KrypixMethod method) {

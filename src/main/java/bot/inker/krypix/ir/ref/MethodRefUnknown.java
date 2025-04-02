@@ -1,6 +1,6 @@
 package bot.inker.krypix.ir.ref;
 
-public class MethodRefUnknown implements MethodRef {
+public final class MethodRefUnknown implements MethodRef {
   private final ClassRef owner;
   private final String name;
   private final MethodType desc;

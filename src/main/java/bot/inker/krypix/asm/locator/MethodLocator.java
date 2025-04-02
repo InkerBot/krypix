@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class MethodLocator {
+public final class MethodLocator {
   @SuppressWarnings("StringOperationCanBeSimplified") // we need to create new string
   private static final String ANY = new String("*");
 

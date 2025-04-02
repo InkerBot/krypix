@@ -1,6 +1,4 @@
-package bot.inker.krypix.asm;
-
-import bot.inker.krypix.ir.CodeBlock;
+package bot.inker.krypix.ir;
 
 import java.util.ArrayList;
 import java.util.List;

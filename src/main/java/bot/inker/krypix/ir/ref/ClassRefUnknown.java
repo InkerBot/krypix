@@ -2,7 +2,7 @@ package bot.inker.krypix.ir.ref;
 
 import bot.inker.krypix.KrypixClass;
 
-public class ClassRefUnknown implements ClassRef {
+public final class ClassRefUnknown implements ClassRef {
   private final String name;
 
   public ClassRefUnknown(String name) {

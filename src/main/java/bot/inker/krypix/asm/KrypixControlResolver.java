@@ -1,7 +1,6 @@
 package bot.inker.krypix.asm;
 
 import bot.inker.krypix.AppView;
-import bot.inker.krypix.KrypixClass;
 import bot.inker.krypix.KrypixField;
 import bot.inker.krypix.KrypixMethod;
 import bot.inker.krypix.common.attachment.AttachmentKey;
