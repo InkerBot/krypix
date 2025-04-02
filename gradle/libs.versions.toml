@@ -1,0 +1,37 @@
+[versions]
+asm = "9.7.1"
+log4j = "2.24.0"
+jline = "3.27.0"
+jgrapht = "1.5.2"
+
+[libraries]
+asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
+asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
+asm-util = { module = "org.ow2.asm:asm-util", version.ref = "asm" }
+asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "asm" }
+asm-analysis = { module = "org.ow2.asm:asm-analysis", version.ref = "asm" }
+
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.17.0" }
+commons-io = { module = "commons-io:commons-io", version = "2.17.0" }
+
+guava = { module = "com.google.guava:guava", version = "33.4.6-jre" }
+
+jetbrains-annotations = { module = "org.jetbrains:annotations", version = "25.0.0" }
+
+jline-terminal-core = { module = "org.jline:jline-terminal", version.ref = "jline" }
+jline-terminal-jni = { module = "org.jline:jline-terminal-jni", version.ref = "jline" }
+jline-reader = { module = "org.jline:jline-reader", version.ref = "jline" }
+
+slf4j = { module = "org.slf4j:slf4j-api", version = "2.0.16" }
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-slf4j2 = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
+log4j-jul = { module = "org.apache.logging.log4j:log4j-jul", version.ref = "log4j" }
+log4j-iostreams = { module = "org.apache.logging.log4j:log4j-iostreams", version.ref = "log4j" }
+
+jgrapht-core = { module = "org.jgrapht:jgrapht-core", version.ref = "jgrapht" }
+jgrapht-ext = { module = "org.jgrapht:jgrapht-ext", version.ref = "jgrapht" }
+jgrapht-io = { module = "org.jgrapht:jgrapht-io", version.ref = "jgrapht" }
+
+fastutil = { module = "it.unimi.dsi:fastutil", version = "8.5.15" }
+
+rocksdbjni = { module = "org.rocksdb:rocksdbjni", version = "9.10.0" }

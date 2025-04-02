@@ -1,0 +1,17 @@
+package bot.inker.krypix.ir;
+
+import org.objectweb.asm.tree.AbstractInsnNode;
+
+import java.util.Collections;
+
+public final class IRUnresolved implements IRAbstract {
+  private final AbstractInsnNode insnNode;
+
+  public IRUnresolved(AbstractInsnNode insnNode) {
+    this.insnNode = insnNode;
+  }
+
+  public AbstractInsnNode insnNode() {
+    return insnNode.clone(Collections.emptyMap());
+  }
+}
