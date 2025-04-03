@@ -1,11 +1,13 @@
 package bot.inker.krypix;
 
 import bot.inker.krypix.common.WithModifier;
+import bot.inker.krypix.ir.ref.TypeRef;
 import org.objectweb.asm.tree.FieldNode;
 
 public final class KrypixField implements WithModifier.Mutable {
   private final KrypixClass owner;
   private FieldNode fieldNode;
+  private TypeRef typeRef;
 
   public KrypixField(KrypixClass owner, FieldNode fieldNode) {
     this.owner = owner;
@@ -33,11 +35,17 @@ public final class KrypixField implements WithModifier.Mutable {
   }
 
   public String desc() {
-    return fieldNode.desc;
+    return typeRef == null
+      ? fieldNode.desc
+      : typeRef.desc();
   }
 
-  public void desc(String desc) {
-    this.fieldNode.desc = desc;
+  public TypeRef type() {
+    return typeRef;
+  }
+
+  public void type(TypeRef typeRef) {
+    this.typeRef = typeRef;
   }
 
   @Override

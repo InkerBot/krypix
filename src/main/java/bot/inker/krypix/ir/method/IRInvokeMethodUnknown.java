@@ -1,16 +1,18 @@
 package bot.inker.krypix.ir.method;
 
-public final class IRInvokeUnknown implements IRInvoke {
+import bot.inker.krypix.ir.ref.MethodType;
+
+public final class IRInvokeMethodUnknown implements IRInvokeMethod {
   private final Type type;
   private final String owner;
   private final String name;
-  private final String desc;
+  private final MethodType methodType;
 
-  public IRInvokeUnknown(Type type, String owner, String name, String desc) {
+  public IRInvokeMethodUnknown(Type type, String owner, String name, MethodType methodType) {
     this.type = type;
     this.owner = owner;
     this.name = name;
-    this.desc = desc;
+    this.methodType = methodType;
   }
 
   @Override
@@ -29,7 +31,7 @@ public final class IRInvokeUnknown implements IRInvoke {
   }
 
   @Override
-  public String desc() {
-    return desc;
+  public MethodType desc() {
+    return methodType;
   }
 }

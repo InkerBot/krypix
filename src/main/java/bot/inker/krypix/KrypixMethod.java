@@ -1,11 +1,13 @@
 package bot.inker.krypix;
 
 import bot.inker.krypix.common.WithModifier;
+import bot.inker.krypix.ir.ref.MethodType;
 import org.objectweb.asm.tree.MethodNode;
 
 public final class KrypixMethod implements WithModifier.Mutable {
   private final KrypixClass owner;
   private MethodNode methodNode;
+  private MethodType typeRef;
 
   public KrypixMethod(KrypixClass owner, MethodNode methodNode) {
     this.owner = owner;
@@ -37,11 +39,17 @@ public final class KrypixMethod implements WithModifier.Mutable {
   }
 
   public String desc() {
-    return methodNode.desc;
+    return typeRef == null
+      ? methodNode.desc
+      : typeRef.desc();
   }
 
-  public void desc(String desc) {
-    this.methodNode.desc = desc;
+  public MethodType type() {
+    return typeRef;
+  }
+
+  public void type(MethodType typeRef) {
+    this.typeRef = typeRef;
   }
 
   @Override

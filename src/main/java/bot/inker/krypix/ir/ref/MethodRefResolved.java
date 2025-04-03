@@ -25,6 +25,6 @@ public final class MethodRefResolved implements MethodRef {
 
   @Override
   public MethodType desc() {
-    return method.desc();
+    return method.type();
   }
 }

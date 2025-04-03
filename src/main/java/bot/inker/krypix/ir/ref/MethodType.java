@@ -18,4 +18,13 @@ public final class MethodType {
   public TypeRef returnType() {
     return returnType;
   }
+
+  public String desc() {
+    StringBuilder sb = new StringBuilder("(");
+    for (TypeRef type : parameterTypes) {
+      sb.append(type.desc());
+    }
+    sb.append(')').append(returnType.desc());
+    return sb.toString();
+  }
 }

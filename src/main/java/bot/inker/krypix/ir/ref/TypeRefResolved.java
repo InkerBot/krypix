@@ -12,6 +12,10 @@ public final class TypeRefResolved implements TypeRef {
     this.dimensions = dimensions;
   }
 
+  public KrypixClass krypixClass() {
+    return elementType;
+  }
+
   @Override
   public String desc() {
     return "[".repeat(dimensions) + "L" + elementType + ";";

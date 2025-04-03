@@ -1,5 +1,7 @@
 package bot.inker.krypix.ir;
 
+import bot.inker.krypix.ir.ref.MethodType;
+import bot.inker.krypix.ir.ref.TypeRef;
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Handle;
 
@@ -48,8 +50,12 @@ public final class IRConst implements IRAbstract {
     return new IRConst(Type.STRING, value);
   }
 
-  public static IRConst createType(org.objectweb.asm.Type value) {
+  public static IRConst createType(TypeRef value) {
     return new IRConst(Type.TYPE, value);
+  }
+
+  public static IRConst createMethodType(MethodType value) {
+    return new IRConst(Type.METHOD_TYPE, value);
   }
 
   public static IRConst createHandle(Handle value) {
@@ -75,8 +81,10 @@ public final class IRConst implements IRAbstract {
       return createDouble((double) value);
     } else if (value instanceof String) {
       return createString((String) value);
-    } else if (value instanceof org.objectweb.asm.Type) {
-      return createType((org.objectweb.asm.Type) value);
+    } else if (value instanceof TypeRef) {
+      return createType((TypeRef) value);
+    } else if (value instanceof MethodType) {
+      return createMethodType((MethodType) value);
     } else if (value instanceof Handle) {
       return createHandle((Handle) value);
     } else {
@@ -136,9 +144,14 @@ public final class IRConst implements IRAbstract {
     return (String) value;
   }
 
-  public org.objectweb.asm.Type typeValue() {
+  public TypeRef typeValue() {
     Preconditions.checkState(type == Type.TYPE, "Expected type TYPE, got %s", type);
-    return (org.objectweb.asm.Type) value;
+    return (TypeRef) value;
+  }
+
+  public MethodType methodTypeValue() {
+    Preconditions.checkState(type == Type.METHOD_TYPE, "Expected type METHOD_TYPE, got %s", type);
+    return (MethodType) value;
   }
 
   public Handle handleValue() {
@@ -149,7 +162,7 @@ public final class IRConst implements IRAbstract {
   public enum Type {
     NULL(BaseFrameType.OBJECT), INT(BaseFrameType.INT), FLOAT(BaseFrameType.FLOAT), LONG(BaseFrameType.LONG),
     DOUBLE(BaseFrameType.DOUBLE), STRING(BaseFrameType.OBJECT), TYPE(BaseFrameType.OBJECT),
-    HANDLE(BaseFrameType.OBJECT);
+    METHOD_TYPE(BaseFrameType.OBJECT), HANDLE(BaseFrameType.OBJECT);
 
     private final BaseFrameType baseType;
 

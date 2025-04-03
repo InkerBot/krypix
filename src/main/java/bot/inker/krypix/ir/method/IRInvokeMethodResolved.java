@@ -1,12 +1,13 @@
 package bot.inker.krypix.ir.method;
 
 import bot.inker.krypix.KrypixMethod;
+import bot.inker.krypix.ir.ref.MethodType;
 
-public final class IRInvokeResolved implements IRInvoke {
+public final class IRInvokeMethodResolved implements IRInvokeMethod {
   private final Type type;
   private final KrypixMethod method;
 
-  public IRInvokeResolved(Type type, KrypixMethod method) {
+  public IRInvokeMethodResolved(Type type, KrypixMethod method) {
     this.type = type;
     this.method = method;
   }
@@ -31,7 +32,7 @@ public final class IRInvokeResolved implements IRInvoke {
   }
 
   @Override
-  public String desc() {
-    return method.desc();
+  public MethodType desc() {
+    return method.type();
   }
 }

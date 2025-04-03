@@ -2,10 +2,14 @@ package bot.inker.krypix;
 
 import bot.inker.krypix.asm.KrypixControlResolver;
 import bot.inker.krypix.asm.locator.MethodLocator;
+import bot.inker.krypix.ir.ref.MethodType;
+import bot.inker.krypix.ir.ref.TypeRef;
+import bot.inker.krypix.ir.ref.TypeRefPrimitive;
 import bot.inker.krypix.loader.AppLoader;
 import bot.inker.krypix.util.StopWatchUtil;
 import bot.inker.krypix.util.uncheck.UncheckUtil;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -91,12 +95,49 @@ public final class AppView {
       .orElse(Optional.empty());
   }
 
-  public MethodLocator methodLocator() {
-    return new MethodLocator(this);
-  }
-
   public KrypixClass requireClass(String name) {
     return getClass(name).orElseThrow(() -> new IllegalArgumentException("Required class not found: " + name));
+  }
+
+  public TypeRef parseTypeRef(String desc) {
+    var type = Type.getType(desc);
+    switch (type.getSort()) {
+      case Type.VOID -> {
+        return new TypeRefPrimitive(Type.VOID, 0);
+      }
+      case Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT, Type.FLOAT, Type.LONG, Type.DOUBLE -> {
+        return new TypeRefPrimitive(type.getSort(), 0);
+      }
+      case Type.ARRAY -> {
+        var elementType = type.getElementType();
+        if (elementType.getSort() == Type.OBJECT) {
+          return getClass(elementType.getInternalName())
+            .<TypeRef>map(TypeRef::ofClass)
+            .orElseGet(() -> TypeRef.ofUnknown(desc));
+        } else {
+          return new TypeRefPrimitive(elementType.getSort(), type.getDimensions());
+        }
+      }
+      case Type.OBJECT -> {
+        return getClass(type.getInternalName())
+          .<TypeRef>map(TypeRef::ofClass)
+          .orElseGet(() -> TypeRef.ofUnknown(desc));
+      }
+      default -> throw new IllegalArgumentException("Unknown type sort: " + type.getSort());
+    }
+  }
+
+  public MethodType parseMethodTypeRef(String desc) {
+    var methodType = Type.getMethodType(desc);
+    var returnType = parseTypeRef(methodType.getReturnType().getDescriptor());
+    var parameterTypes = Arrays.stream(methodType.getArgumentTypes())
+      .map(argType -> parseTypeRef(argType.getDescriptor()))
+      .toArray(TypeRef[]::new);
+    return new MethodType(parameterTypes, returnType);
+  }
+
+  public MethodLocator methodLocator() {
+    return new MethodLocator(this);
   }
 
   public AppLoader loader(String scope) {
@@ -157,6 +198,14 @@ public final class AppView {
             .map(this::requireClass)
             .toList());
         }
+
+        clazz.fields().forEach(field -> {
+          field.type(parseTypeRef(field.desc()));
+        });
+
+        clazz.methods().forEach(method -> {
+          method.type(parseMethodTypeRef(method.desc()));
+        });
       });
     }));
 
@@ -167,7 +216,7 @@ public final class AppView {
       .forEach(scope ->
         scope.classPool().all().stream()
           .flatMap(clazz -> clazz.methods().stream())
-          .filter(method -> method.hasCode())
+          .filter(KrypixMethod::hasCode)
           .forEach(method -> {
             new KrypixControlResolver(this, method).resolve();
           })

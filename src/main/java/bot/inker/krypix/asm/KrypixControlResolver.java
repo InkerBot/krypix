@@ -5,8 +5,10 @@ import bot.inker.krypix.KrypixField;
 import bot.inker.krypix.KrypixMethod;
 import bot.inker.krypix.common.attachment.AttachmentKey;
 import bot.inker.krypix.ir.*;
+import bot.inker.krypix.ir.array.IRArrayLength;
 import bot.inker.krypix.ir.array.IRArrayLoad;
 import bot.inker.krypix.ir.array.IRArrayStore;
+import bot.inker.krypix.ir.array.IRNewArray;
 import bot.inker.krypix.ir.branch.IRBranchIf;
 import bot.inker.krypix.ir.branch.IRBranchSwitch;
 import bot.inker.krypix.ir.branch.IRGoto;
@@ -19,18 +21,24 @@ import bot.inker.krypix.ir.field.IRFieldStoreUnknown;
 import bot.inker.krypix.ir.insn.IRNop;
 import bot.inker.krypix.ir.local.IRLocalLoad;
 import bot.inker.krypix.ir.local.IRLocalStore;
-import bot.inker.krypix.ir.method.IRInvoke;
-import bot.inker.krypix.ir.method.IRInvokeResolved;
-import bot.inker.krypix.ir.method.IRInvokeUnknown;
+import bot.inker.krypix.ir.method.IRInvokeDynamic;
+import bot.inker.krypix.ir.method.IRInvokeMethod;
+import bot.inker.krypix.ir.method.IRInvokeMethodResolved;
+import bot.inker.krypix.ir.method.IRInvokeMethodUnknown;
+import bot.inker.krypix.ir.monitor.IRMonitorEnter;
+import bot.inker.krypix.ir.monitor.IRMonitorExit;
 import bot.inker.krypix.ir.num.*;
+import bot.inker.krypix.ir.ref.TypeRef;
 import bot.inker.krypix.ir.terminatal.IRReturn;
 import bot.inker.krypix.ir.terminatal.IRTerminatal;
+import bot.inker.krypix.ir.terminatal.IRThrow;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.*;
 
 import java.util.*;
@@ -81,7 +89,7 @@ public final class KrypixControlResolver {
     registerResolver(KrypixControlResolver::resolveSwitch,
       Opcodes.LOOKUPSWITCH, Opcodes.TABLESWITCH);
     registerResolver((resolver, insnNode) -> {
-        throw new IllegalStateException("Unresolved opcode");
+        throw new IllegalStateException("Unsupported opcode: JSR RET");
       },
       Opcodes.JSR, Opcodes.RET);
     registerResolver(KrypixControlResolver::resolveReturn,
@@ -90,6 +98,16 @@ public final class KrypixControlResolver {
       Opcodes.GETSTATIC, Opcodes.PUTSTATIC, Opcodes.GETFIELD, Opcodes.PUTFIELD);
     registerResolver(KrypixControlResolver::resolveInvoke,
       Opcodes.INVOKEVIRTUAL, Opcodes.INVOKESPECIAL, Opcodes.INVOKESTATIC, Opcodes.INVOKEINTERFACE);
+    registerResolver(KrypixControlResolver::resolveDynamic, Opcodes.INVOKEDYNAMIC);
+    registerResolver(KrypixControlResolver::resolveNew, Opcodes.NEW);
+    registerResolver(KrypixControlResolver::resolveNewArray,
+      Opcodes.NEWARRAY, Opcodes.ANEWARRAY, Opcodes.MULTIANEWARRAY);
+    registerResolver(IRArrayLength::new, Opcodes.ARRAYLENGTH);
+    registerResolver(KrypixControlResolver::resolveCheckcast, Opcodes.CHECKCAST);
+    registerResolver(KrypixControlResolver::resolveInstanceof, Opcodes.INSTANCEOF);
+    registerResolver(IRMonitorEnter::new, Opcodes.MONITORENTER);
+    registerResolver(IRMonitorExit::new, Opcodes.MONITOREXIT);
+    registerResolver(KrypixControlResolver::resolveThrow, Opcodes.ATHROW);
   }
 
   private final AppView appView;
@@ -198,6 +216,20 @@ public final class KrypixControlResolver {
     }
   }
 
+  private IRConst mapConst(Object cst) {
+    if (cst instanceof ConstantDynamic) {
+      throw new IllegalStateException("ConstantDynamic not supported");
+    } else if (cst instanceof Type asmType) {
+      if (asmType.getSort() == Type.METHOD) {
+        return IRConst.createMethodType(appView.parseMethodTypeRef(asmType.getDescriptor()));
+      } else {
+        return IRConst.createType(appView.parseTypeRef(asmType.getDescriptor()));
+      }
+    } else {
+      return IRConst.create(cst);
+    }
+  }
+
   private void resolveLdc(AbstractInsnNode insnNode) {
     Preconditions.checkArgument(insnNode instanceof LdcInsnNode, "Expected LdcInsnNode, got %s", insnNode);
 
@@ -206,7 +238,7 @@ public final class KrypixControlResolver {
       // TODO: Resolve constant dynamic
       addCode(new IRUnresolved(new LdcInsnNode(ldcInsnNode.cst)));
     } else {
-      addCode(IRConst.create(ldcInsnNode.cst));
+      addCode(mapConst(ldcInsnNode.cst));
     }
   }
 
@@ -469,19 +501,86 @@ public final class KrypixControlResolver {
 
     switch (insnNode.getOpcode()) {
       case Opcodes.INVOKESTATIC -> addCode((krypixMethod == null)
-        ? new IRInvokeUnknown(IRInvoke.Type.STATIC, methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc)
-        : new IRInvokeResolved(IRInvoke.Type.STATIC, krypixMethod));
+        ? new IRInvokeMethodUnknown(IRInvokeMethod.Type.STATIC, methodInsnNode.owner, methodInsnNode.name, appView.parseMethodTypeRef(methodInsnNode.desc))
+        : new IRInvokeMethodResolved(IRInvokeMethod.Type.STATIC, krypixMethod));
       case Opcodes.INVOKESPECIAL -> addCode((krypixMethod == null)
-        ? new IRInvokeUnknown(IRInvoke.Type.SPECIAL, methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc)
-        : new IRInvokeResolved(IRInvoke.Type.SPECIAL, krypixMethod));
+        ? new IRInvokeMethodUnknown(IRInvokeMethod.Type.SPECIAL, methodInsnNode.owner, methodInsnNode.name, appView.parseMethodTypeRef(methodInsnNode.desc))
+        : new IRInvokeMethodResolved(IRInvokeMethod.Type.SPECIAL, krypixMethod));
       case Opcodes.INVOKEVIRTUAL -> addCode((krypixMethod == null)
-        ? new IRInvokeUnknown(IRInvoke.Type.VIRTUAL, methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc)
-        : new IRInvokeResolved(IRInvoke.Type.VIRTUAL, krypixMethod));
+        ? new IRInvokeMethodUnknown(IRInvokeMethod.Type.VIRTUAL, methodInsnNode.owner, methodInsnNode.name, appView.parseMethodTypeRef(methodInsnNode.desc))
+        : new IRInvokeMethodResolved(IRInvokeMethod.Type.VIRTUAL, krypixMethod));
       case Opcodes.INVOKEINTERFACE -> addCode((krypixMethod == null)
-        ? new IRInvokeUnknown(IRInvoke.Type.INTERFACE, methodInsnNode.owner, methodInsnNode.name, methodInsnNode.desc)
-        : new IRInvokeResolved(IRInvoke.Type.INTERFACE, krypixMethod));
+        ? new IRInvokeMethodUnknown(IRInvokeMethod.Type.INTERFACE, methodInsnNode.owner, methodInsnNode.name, appView.parseMethodTypeRef(methodInsnNode.desc))
+        : new IRInvokeMethodResolved(IRInvokeMethod.Type.INTERFACE, krypixMethod));
       default -> throw new IllegalArgumentException("Unexpected opcode: " + insnNode.getOpcode());
     }
+  }
+
+  private void resolveDynamic(AbstractInsnNode insnNode) {
+    Preconditions.checkArgument(insnNode instanceof InvokeDynamicInsnNode, "Expected InvokeDynamicInsnNode, got %s", insnNode);
+
+    InvokeDynamicInsnNode invokeDynamicInsnNode = (InvokeDynamicInsnNode) insnNode;
+    addCode(new IRInvokeDynamic(
+      invokeDynamicInsnNode.name,
+      appView.parseMethodTypeRef(invokeDynamicInsnNode.desc),
+      invokeDynamicInsnNode.bsm,
+      Arrays.stream(invokeDynamicInsnNode.bsmArgs).map(this::mapConst).toArray(IRConst[]::new)
+    ));
+  }
+
+  private void resolveNew(AbstractInsnNode insnNode) {
+    Preconditions.checkArgument(insnNode instanceof TypeInsnNode, "Expected TypeInsnNode, got %s", insnNode);
+
+    TypeInsnNode typeInsnNode = (TypeInsnNode) insnNode;
+    addCode(new IRNew(appView.parseTypeRef("L" + typeInsnNode.desc + ";")));
+  }
+
+  private void resolveNewArray(AbstractInsnNode insnNode) {
+    Preconditions.checkArgument(insnNode instanceof IntInsnNode || insnNode instanceof TypeInsnNode || insnNode instanceof MultiANewArrayInsnNode,
+      "Expected IntInsnNode, got %s", insnNode);
+
+    TypeRef elementType = switch (insnNode.getOpcode()) {
+      case Opcodes.NEWARRAY -> switch (((IntInsnNode) insnNode).operand) {
+        case Opcodes.T_BOOLEAN -> TypeRef.ofBoolean();
+        case Opcodes.T_CHAR -> TypeRef.ofChar();
+        case Opcodes.T_BYTE -> TypeRef.ofByte();
+        case Opcodes.T_SHORT -> TypeRef.ofShort();
+        case Opcodes.T_INT -> TypeRef.ofInt();
+        case Opcodes.T_LONG -> TypeRef.ofLong();
+        case Opcodes.T_FLOAT -> TypeRef.ofFloat();
+        case Opcodes.T_DOUBLE -> TypeRef.ofDouble();
+        default -> throw new IllegalArgumentException("Unexpected type: " + ((IntInsnNode) insnNode).operand);
+      };
+      case Opcodes.ANEWARRAY -> appView.parseTypeRef("L" + ((TypeInsnNode) insnNode).desc + ";");
+      case Opcodes.MULTIANEWARRAY -> appView.parseTypeRef("L" + ((MultiANewArrayInsnNode) insnNode).desc + ";");
+      default -> throw new IllegalStateException("Unexpected opcode: " + insnNode.getOpcode());
+    };
+
+    int dimensions = (insnNode.getOpcode() == Opcodes.MULTIANEWARRAY)
+      ? ((MultiANewArrayInsnNode) insnNode).dims
+      : 1;
+
+    addCode(new IRNewArray(elementType, dimensions));
+  }
+
+  private void resolveCheckcast(AbstractInsnNode insnNode) {
+    Preconditions.checkArgument(insnNode instanceof TypeInsnNode, "Expected TypeInsnNode, got %s", insnNode);
+
+    TypeInsnNode typeInsnNode = (TypeInsnNode) insnNode;
+    addCode(new IRCheckCast(appView.parseTypeRef("L" + typeInsnNode.desc + ";")));
+  }
+
+  private void resolveInstanceof(AbstractInsnNode insnNode) {
+    Preconditions.checkArgument(insnNode instanceof TypeInsnNode, "Expected TypeInsnNode, got %s", insnNode);
+
+    TypeInsnNode typeInsnNode = (TypeInsnNode) insnNode;
+    addCode(new IRInstanceOf(appView.parseTypeRef("L" + typeInsnNode.desc + ";")));
+  }
+
+  private void resolveThrow(AbstractInsnNode insnNode) {
+    Preconditions.checkArgument(insnNode instanceof InsnNode, "Expected InsnNode, got %s", insnNode);
+
+    currentBlock.terminatal(new IRThrow());
   }
 
   private void resolveUnknown(AbstractInsnNode insnNode) {

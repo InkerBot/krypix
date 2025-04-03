@@ -1,5 +1,8 @@
 package bot.inker.krypix.ir.field;
 
+import bot.inker.krypix.ir.ref.ClassRef;
+import bot.inker.krypix.ir.ref.ClassRefUnknown;
+
 public final class IRFieldLoadUnknown implements IRFieldLoad {
   private final boolean isStatic;
   private final String owner;
@@ -19,8 +22,8 @@ public final class IRFieldLoadUnknown implements IRFieldLoad {
   }
 
   @Override
-  public String owner() {
-    return owner;
+  public ClassRef owner() {
+    return new ClassRefUnknown(owner);
   }
 
   @Override

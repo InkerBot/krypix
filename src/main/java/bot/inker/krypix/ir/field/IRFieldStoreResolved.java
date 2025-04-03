@@ -1,6 +1,8 @@
 package bot.inker.krypix.ir.field;
 
 import bot.inker.krypix.KrypixField;
+import bot.inker.krypix.ir.ref.ClassRef;
+import bot.inker.krypix.ir.ref.ClassRefResolved;
 
 public final class IRFieldStoreResolved implements IRFieldStore {
   private final KrypixField field;
@@ -19,8 +21,8 @@ public final class IRFieldStoreResolved implements IRFieldStore {
   }
 
   @Override
-  public String owner() {
-    return field.owner().name();
+  public ClassRef owner() {
+    return new ClassRefResolved(field.owner());
   }
 
   @Override
