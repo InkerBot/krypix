@@ -27,4 +27,9 @@ public final class MethodType {
     sb.append(')').append(returnType.desc());
     return sb.toString();
   }
+
+  @Override
+  public String toString() {
+    return desc();
+  }
 }

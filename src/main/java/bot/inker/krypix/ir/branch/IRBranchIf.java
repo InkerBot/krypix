@@ -2,6 +2,8 @@ package bot.inker.krypix.ir.branch;
 
 import bot.inker.krypix.ir.CodeBlock;
 
+import java.util.function.Function;
+
 public final class IRBranchIf implements IRBranch {
   private final Operator operator;
   private final CodeBlock target;
@@ -23,6 +25,17 @@ public final class IRBranchIf implements IRBranch {
 
   public CodeBlock alternative() {
     return alternative;
+  }
+
+  @Override
+  public String toString(Function<CodeBlock, String> codeBlockNameProvider) {
+    return "if " + operator.name().toLowerCase() + " " + codeBlockNameProvider.apply(target) +
+      " else " + codeBlockNameProvider.apply(alternative);
+  }
+
+  @Override
+  public String toString() {
+    return toString(CodeBlock::defaultName);
   }
 
   public enum Operator {

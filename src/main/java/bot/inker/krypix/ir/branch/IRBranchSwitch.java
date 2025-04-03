@@ -4,6 +4,8 @@ import bot.inker.krypix.ir.CodeBlock;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
+import java.util.function.Function;
+
 public final class IRBranchSwitch implements IRBranch {
   private final Int2ObjectMap<CodeBlock> branches;
   private final CodeBlock defaultBranch;
@@ -23,6 +25,23 @@ public final class IRBranchSwitch implements IRBranch {
 
   public CodeBlock defaultBranch() {
     return defaultBranch;
+  }
+
+  @Override
+  public String toString(Function<CodeBlock, String> codeBlockNameProvider) {
+    StringBuilder sb = new StringBuilder("switch ");
+    for (Int2ObjectMap.Entry<CodeBlock> entry : branches.int2ObjectEntrySet()) {
+      sb.append(entry.getIntKey()).append(" -> ").append(codeBlockNameProvider.apply(entry.getValue())).append(", ");
+    }
+    if (defaultBranch != null) {
+      sb.append("default -> ").append(codeBlockNameProvider.apply(defaultBranch));
+    }
+    return sb.toString();
+  }
+
+  @Override
+  public String toString() {
+    return toString(CodeBlock::defaultName);
   }
 
   public static class Builder {

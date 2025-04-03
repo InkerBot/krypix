@@ -1,6 +1,7 @@
 package bot.inker.krypix;
 
 import bot.inker.krypix.common.WithModifier;
+import bot.inker.krypix.ir.MethodBody;
 import bot.inker.krypix.ir.ref.MethodType;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -8,6 +9,7 @@ public final class KrypixMethod implements WithModifier.Mutable {
   private final KrypixClass owner;
   private MethodNode methodNode;
   private MethodType typeRef;
+  private MethodBody body;
 
   public KrypixMethod(KrypixClass owner, MethodNode methodNode) {
     this.owner = owner;
@@ -64,5 +66,13 @@ public final class KrypixMethod implements WithModifier.Mutable {
 
   public boolean hasCode() {
     return !isAbstract() && !isNative();
+  }
+
+  public MethodBody body() {
+    return body;
+  }
+
+  public void body(MethodBody body) {
+    this.body = body;
   }
 }

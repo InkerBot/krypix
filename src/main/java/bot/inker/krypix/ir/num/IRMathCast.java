@@ -20,4 +20,9 @@ public final class IRMathCast implements IRMath {
   public BaseValueType targetType() {
     return targetType;
   }
+
+  @Override
+  public String toString() {
+    return "cast " + sourceType.name().toLowerCase() + " " + targetType.name().toLowerCase();
+  }
 }

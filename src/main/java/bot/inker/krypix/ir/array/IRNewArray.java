@@ -19,4 +19,15 @@ public class IRNewArray implements IRAbstract {
   public int dimension() {
     return dimension;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("newarray ");
+    for (int i = 0; i < dimension; i++) {
+      sb.append("[");
+    }
+    sb.append(type);
+    return sb.toString();
+  }
 }

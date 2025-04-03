@@ -1,4 +1,4 @@
-package bot.inker.krypix.ir.terminatal;
+package bot.inker.krypix.ir.branch;
 
 import bot.inker.krypix.ir.BaseFrameType;
 import org.jetbrains.annotations.Nullable;
@@ -12,5 +12,10 @@ public final class IRReturn implements IRTerminatal {
 
   public @Nullable BaseFrameType type() {
     return type;
+  }
+
+  @Override
+  public String toString() {
+    return "return" + (type == null ? "" : " " + type.name().toLowerCase());
   }
 }

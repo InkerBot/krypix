@@ -14,4 +14,9 @@ public final class IRUnresolved implements IRAbstract {
   public AbstractInsnNode insnNode() {
     return insnNode.clone(Collections.emptyMap());
   }
+
+  @Override
+  public String toString() {
+    return "unknown " + insnNode.getOpcode() + " " + insnNode.getClass().getSimpleName();
+  }
 }

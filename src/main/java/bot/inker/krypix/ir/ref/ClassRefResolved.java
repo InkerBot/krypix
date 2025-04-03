@@ -17,4 +17,9 @@ public final class ClassRefResolved implements ClassRef {
   public String name() {
     return clazz.name();
   }
+
+  @Override
+  public String toString() {
+    return clazz.name();
+  }
 }

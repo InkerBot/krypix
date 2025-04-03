@@ -20,6 +20,11 @@ public final class IRMathBinary implements IRMath {
     return operation;
   }
 
+  @Override
+  public String toString() {
+    return operation.name().toLowerCase() + " " + type.name().toLowerCase();
+  }
+
   public enum Operation {
     ADD, SUB, MUL, DIV, REM, SHL, SHR, USHR, AND, OR, XOR
   }

@@ -1,9 +1,10 @@
 package bot.inker.krypix.ir;
 
+import bot.inker.krypix.ir.handle.IRConstantDynamic;
+import bot.inker.krypix.ir.handle.IRHandle;
 import bot.inker.krypix.ir.ref.MethodType;
 import bot.inker.krypix.ir.ref.TypeRef;
 import com.google.common.base.Preconditions;
-import org.objectweb.asm.Handle;
 
 public final class IRConst implements IRAbstract {
   private final Type type;
@@ -58,8 +59,12 @@ public final class IRConst implements IRAbstract {
     return new IRConst(Type.METHOD_TYPE, value);
   }
 
-  public static IRConst createHandle(Handle value) {
+  public static IRConst createHandle(IRHandle value) {
     return new IRConst(Type.HANDLE, value);
+  }
+
+  public static IRConst createDynamic(IRConstantDynamic value) {
+    return new IRConst(Type.DYNAMIC, value);
   }
 
   public static IRConst create(Object value) {
@@ -85,8 +90,10 @@ public final class IRConst implements IRAbstract {
       return createType((TypeRef) value);
     } else if (value instanceof MethodType) {
       return createMethodType((MethodType) value);
-    } else if (value instanceof Handle) {
-      return createHandle((Handle) value);
+    } else if (value instanceof IRHandle) {
+      return createHandle((IRHandle) value);
+    } else if (value instanceof IRConstantDynamic) {
+      return createDynamic((IRConstantDynamic) value);
     } else {
       throw new IllegalArgumentException("Unsupported value type: " + value.getClass());
     }
@@ -97,7 +104,10 @@ public final class IRConst implements IRAbstract {
   }
 
   public BaseFrameType baseType() {
-    return type.baseType();
+    if (type == Type.DYNAMIC) {
+      return ((IRConstantDynamic) value).desc().asFrameType();
+    }
+    return type.baseType;
   }
 
   public Object value() {
@@ -154,24 +164,30 @@ public final class IRConst implements IRAbstract {
     return (MethodType) value;
   }
 
-  public Handle handleValue() {
+  public IRHandle handleValue() {
     Preconditions.checkState(type == Type.HANDLE, "Expected type HANDLE, got %s", type);
-    return (Handle) value;
+    return (IRHandle) value;
+  }
+
+  public IRConstantDynamic dynamicValue() {
+    Preconditions.checkState(type == Type.DYNAMIC, "Expected type DYNAMIC, got %s", type);
+    return (IRConstantDynamic) value;
+  }
+
+  @Override
+  public String toString() {
+    return "const " + type.name().toLowerCase() + " " + value;
   }
 
   public enum Type {
     NULL(BaseFrameType.OBJECT), INT(BaseFrameType.INT), FLOAT(BaseFrameType.FLOAT), LONG(BaseFrameType.LONG),
     DOUBLE(BaseFrameType.DOUBLE), STRING(BaseFrameType.OBJECT), TYPE(BaseFrameType.OBJECT),
-    METHOD_TYPE(BaseFrameType.OBJECT), HANDLE(BaseFrameType.OBJECT);
+    METHOD_TYPE(BaseFrameType.OBJECT), HANDLE(BaseFrameType.OBJECT), DYNAMIC(null);
 
     private final BaseFrameType baseType;
 
     Type(BaseFrameType baseType) {
       this.baseType = baseType;
-    }
-
-    public BaseFrameType baseType() {
-      return baseType;
     }
   }
 }

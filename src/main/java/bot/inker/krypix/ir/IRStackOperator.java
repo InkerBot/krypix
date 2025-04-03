@@ -19,6 +19,11 @@ public final class IRStackOperator implements IRAbstract {
     return type;
   }
 
+  @Override
+  public String toString() {
+    return type.name().toLowerCase();
+  }
+
   public enum Type {
     POP, POP2, DUP, DUP_X1, DUP_X2, DUP2, DUP2_X1, DUP2_X2, SWAP;
 

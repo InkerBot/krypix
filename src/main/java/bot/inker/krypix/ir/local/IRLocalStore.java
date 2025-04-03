@@ -20,4 +20,9 @@ public final class IRLocalStore implements IRLocal {
   public int index() {
     return index;
   }
+
+  @Override
+  public String toString() {
+    return "store " + type.name().toLowerCase() + " " + index;
+  }
 }

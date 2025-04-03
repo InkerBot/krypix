@@ -1,10 +1,16 @@
 package bot.inker.krypix;
 
+import bot.inker.krypix.asm.KrypixControlStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
   private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -27,6 +33,29 @@ public class Main {
 
     obfuscate.appView().build();
 
+    obfuscate.appView().allClasses().forEach(clazz -> {
+      if (!clazz.scope().mutable()) {
+        return;
+      }
+      Path path = Paths.get("dump", clazz.name());
+      for (int i = 0; i < clazz.methods().size(); i++) {
+        KrypixMethod method = clazz.methods().get(i);
+        if (!method.hasCode()) {
+          continue;
+        }
+
+        String methodString = new KrypixControlStringer(obfuscate.appView(), method).stringer();
+        try {
+          Path outputPath = path.resolve(i + "_" + method.name() + ".txt");
+          Files.createDirectories(outputPath.getParent());
+          try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
+            writer.write(methodString);
+          }
+        } catch (IOException e) {
+          logger.error("Failed to write method string to file at {} {}", clazz, method, e);
+        }
+      }
+    });
     System.out.println();
   }
 }

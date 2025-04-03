@@ -20,6 +20,11 @@ public final class IRMathBitwise implements IRMath {
     return operation;
   }
 
+  @Override
+  public String toString() {
+    return operation.name().toLowerCase() + " " + type.name().toLowerCase();
+  }
+
   public enum Operation {
     SHL, SHR, USHR, AND, OR, XOR
   }

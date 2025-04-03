@@ -20,6 +20,11 @@ public final class IRMathUnary implements IRMath {
     return operation;
   }
 
+  @Override
+  public String toString() {
+    return operation.name().toLowerCase() + " " + type.name().toLowerCase();
+  }
+
   public enum Operation {
     NEG
   }

@@ -12,4 +12,9 @@ public final class IRInstanceOf implements IRAbstract {
   public TypeRef type() {
     return type;
   }
+
+  @Override
+  public String toString() {
+    return "instanceof " + type;
+  }
 }

@@ -27,4 +27,9 @@ public final class MethodRefResolved implements MethodRef {
   public MethodType desc() {
     return method.type();
   }
+
+  @Override
+  public String toString() {
+    return method.owner().name() + " " + method.name() + " " + method.type();
+  }
 }

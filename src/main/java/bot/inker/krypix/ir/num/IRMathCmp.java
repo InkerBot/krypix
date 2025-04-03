@@ -20,6 +20,11 @@ public final class IRMathCmp implements IRMath {
     return operation;
   }
 
+  @Override
+  public String toString() {
+    return operation.name().toLowerCase() + " " + type.name().toLowerCase();
+  }
+
   public enum Operation {
     CMP, CMPL, CMPG
   }

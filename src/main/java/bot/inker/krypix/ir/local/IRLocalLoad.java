@@ -20,4 +20,9 @@ public final class IRLocalLoad implements IRLocal {
   public int index() {
     return index;
   }
+
+  @Override
+  public String toString() {
+    return "load " + type.name().toLowerCase() + " " + index;
+  }
 }

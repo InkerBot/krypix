@@ -1,29 +1,26 @@
-package bot.inker.krypix.ir.method;
+package bot.inker.krypix.ir.handle;
 
 import bot.inker.krypix.ir.IRConst;
-import bot.inker.krypix.ir.handle.IRHandle;
-import bot.inker.krypix.ir.ref.MethodType;
+import bot.inker.krypix.ir.ref.TypeRef;
 
-public final class IRInvokeDynamic implements IRInvoke {
-  public final IRHandle bsm;
-  public final IRConst[] bsmArgs;
+public final class IRConstantDynamic {
   private final String name;
-  private final MethodType desc;
+  private final TypeRef desc;
+  private final IRHandle bsm;
+  private final IRConst[] bsmArgs;
 
-  public IRInvokeDynamic(String name, MethodType methodType, IRHandle bsm, IRConst[] bsmArgs) {
+  public IRConstantDynamic(String name, TypeRef desc, IRHandle bsm, IRConst[] bsmArgs) {
     this.name = name;
-    this.desc = methodType;
+    this.desc = desc;
     this.bsm = bsm;
     this.bsmArgs = bsmArgs;
   }
 
-  @Override
   public String name() {
     return name;
   }
 
-  @Override
-  public MethodType desc() {
+  public TypeRef desc() {
     return desc;
   }
 
@@ -37,8 +34,8 @@ public final class IRInvokeDynamic implements IRInvoke {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("invokedynamic ").append(name).append(" ").append(desc);
+    StringBuilder sb = new StringBuilder("{");
+    sb.append("ConstantDynamic ").append(name).append(" ").append(desc);
     if (bsm != null) {
       sb.append(" bsm=").append(bsm);
     }
@@ -52,6 +49,6 @@ public final class IRInvokeDynamic implements IRInvoke {
       }
       sb.append("]");
     }
-    return sb.toString();
+    return sb.append("}").toString();
   }
 }

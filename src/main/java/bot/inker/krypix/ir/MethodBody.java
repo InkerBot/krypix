@@ -18,4 +18,13 @@ public final class MethodBody {
   public void entryBlock(CodeBlock entryBlock) {
     this.entryBlock = entryBlock;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (CodeBlock block : codeBlocks) {
+      sb.append(block).append("\n");
+    }
+    return sb.toString();
+  }
 }

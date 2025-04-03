@@ -2,12 +2,16 @@ package bot.inker.krypix.ir;
 
 import bot.inker.krypix.common.attachment.AttachmentContainer;
 import bot.inker.krypix.common.attachment.WithAttachment;
-import bot.inker.krypix.ir.terminatal.IRTerminatal;
+import bot.inker.krypix.ir.branch.IRTerminatal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public final class CodeBlock implements WithAttachment.Contained {
+  private static final AtomicLong ID_GENERATOR = new AtomicLong(0);
+
+  private final long id = ID_GENERATOR.getAndIncrement();
   private final AttachmentContainer container = new AttachmentContainer();
   private final List<IRAbstract> instructions = new ArrayList<>();
   private IRTerminatal terminatal;
@@ -31,5 +35,14 @@ public final class CodeBlock implements WithAttachment.Contained {
 
   public void terminatal(IRTerminatal terminatal) {
     this.terminatal = terminatal;
+  }
+
+  public String defaultName() {
+    return Long.toString(id, 36);
+  }
+
+  @Override
+  public String toString() {
+    return "block " + defaultName();
   }
 }

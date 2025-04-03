@@ -1,10 +1,9 @@
 package bot.inker.krypix;
 
 import bot.inker.krypix.asm.KrypixControlResolver;
+import bot.inker.krypix.asm.locator.FieldLocator;
 import bot.inker.krypix.asm.locator.MethodLocator;
-import bot.inker.krypix.ir.ref.MethodType;
-import bot.inker.krypix.ir.ref.TypeRef;
-import bot.inker.krypix.ir.ref.TypeRefPrimitive;
+import bot.inker.krypix.ir.ref.*;
 import bot.inker.krypix.loader.AppLoader;
 import bot.inker.krypix.util.StopWatchUtil;
 import bot.inker.krypix.util.uncheck.UncheckUtil;
@@ -102,29 +101,28 @@ public final class AppView {
   public TypeRef parseTypeRef(String desc) {
     var type = Type.getType(desc);
     switch (type.getSort()) {
-      case Type.VOID -> {
-        return new TypeRefPrimitive(Type.VOID, 0);
-      }
-      case Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT, Type.FLOAT, Type.LONG, Type.DOUBLE -> {
-        return new TypeRefPrimitive(type.getSort(), 0);
+      case Type.VOID, Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT, Type.FLOAT, Type.LONG, Type.DOUBLE -> {
+        return TypeRef.fromAsmSort(type.getSort());
       }
       case Type.ARRAY -> {
         var elementType = type.getElementType();
         if (elementType.getSort() == Type.OBJECT) {
-          return getClass(elementType.getInternalName())
-            .<TypeRef>map(TypeRef::ofClass)
-            .orElseGet(() -> TypeRef.ofUnknown(desc));
+          return TypeRef.ofClass(parseClassRef(elementType.getInternalName())).withDimensions(type.getDimensions());
         } else {
-          return new TypeRefPrimitive(elementType.getSort(), type.getDimensions());
+          return TypeRef.fromAsmSort(elementType.getSort()).withDimensions(type.getDimensions());
         }
       }
       case Type.OBJECT -> {
-        return getClass(type.getInternalName())
-          .<TypeRef>map(TypeRef::ofClass)
-          .orElseGet(() -> TypeRef.ofUnknown(desc));
+        return TypeRef.ofClass(parseClassRef(type.getInternalName()));
       }
       default -> throw new IllegalArgumentException("Unknown type sort: " + type.getSort());
     }
+  }
+
+  public ClassRef parseClassRef(String name) {
+    return getClass(name)
+      .<ClassRef>map(ClassRefResolved::new)
+      .orElseGet(() -> new ClassRefUnknown(name));
   }
 
   public MethodType parseMethodTypeRef(String desc) {
@@ -138,6 +136,10 @@ public final class AppView {
 
   public MethodLocator methodLocator() {
     return new MethodLocator(this);
+  }
+
+  public FieldLocator fieldLocator() {
+    return new FieldLocator(this);
   }
 
   public AppLoader loader(String scope) {
@@ -218,7 +220,7 @@ public final class AppView {
           .flatMap(clazz -> clazz.methods().stream())
           .filter(KrypixMethod::hasCode)
           .forEach(method -> {
-            new KrypixControlResolver(this, method).resolve();
+            method.body(new KrypixControlResolver(this, method).resolve());
           })
       ));
   }

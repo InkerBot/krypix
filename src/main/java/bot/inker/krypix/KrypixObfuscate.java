@@ -61,11 +61,11 @@ public final class KrypixObfuscate {
   }
 
   public static final class Builder {
+    private final boolean withStandardScope = true;
     // 0 = not set, 1 = specified, 2 = seed
     private int randomStatus = 0;
     private ObfuscateRandom random;
     private File tempDir;
-    private final boolean withStandardScope = true;
 
     public Builder random(ObfuscateRandom random) {
       if (randomStatus == 2) {

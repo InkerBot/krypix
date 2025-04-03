@@ -15,4 +15,9 @@ public final class IRArrayLoad implements IRArrayOperator {
   public BaseValueType type() {
     return type;
   }
+
+  @Override
+  public String toString() {
+    return "arrayload " + type.name().toLowerCase();
+  }
 }

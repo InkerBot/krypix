@@ -15,4 +15,9 @@ public final class IRArrayStore implements IRArrayOperator {
   public BaseValueType type() {
     return type;
   }
+
+  @Override
+  public String toString() {
+    return "arraystore " + type.name().toLowerCase();
+  }
 }

@@ -12,4 +12,9 @@ public final class IRCheckCast implements IRAbstract {
   public TypeRef type() {
     return type;
   }
+
+  @Override
+  public String toString() {
+    return "checkcast " + type;
+  }
 }

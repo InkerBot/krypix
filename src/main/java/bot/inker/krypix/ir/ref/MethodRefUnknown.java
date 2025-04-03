@@ -25,4 +25,9 @@ public final class MethodRefUnknown implements MethodRef {
   public MethodType desc() {
     return desc;
   }
+
+  @Override
+  public String toString() {
+    return owner.name() + " " + name + " " + desc;
+  }
 }

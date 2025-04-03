@@ -12,4 +12,9 @@ public final class IRNew implements IRAbstract {
   public TypeRef type() {
     return type;
   }
+
+  @Override
+  public String toString() {
+    return "new " + type;
+  }
 }

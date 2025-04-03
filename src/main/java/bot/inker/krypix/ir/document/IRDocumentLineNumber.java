@@ -18,4 +18,9 @@ public final class IRDocumentLineNumber implements IRDocument {
   public int lineNumber() {
     return lineNumber;
   }
+
+  @Override
+  public String toString() {
+    return "@line " + lineNumber;
+  }
 }
