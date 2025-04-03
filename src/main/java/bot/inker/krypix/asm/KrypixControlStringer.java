@@ -2,8 +2,8 @@ package bot.inker.krypix.asm;
 
 import bot.inker.krypix.AppView;
 import bot.inker.krypix.KrypixMethod;
-import bot.inker.krypix.directory.DictionaryMaker;
-import bot.inker.krypix.directory.NameFactory;
+import bot.inker.krypix.common.directory.DictionaryMaker;
+import bot.inker.krypix.common.directory.NameFactory;
 import bot.inker.krypix.ir.CodeBlock;
 import bot.inker.krypix.ir.IRAbstract;
 

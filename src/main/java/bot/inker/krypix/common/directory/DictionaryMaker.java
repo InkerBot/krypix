@@ -1,8 +1,12 @@
-package bot.inker.krypix.directory;
+package bot.inker.krypix.common.directory;
 
 import java.util.stream.IntStream;
 
-public class DictionaryMaker {
+public final class DictionaryMaker {
+  private DictionaryMaker() {
+    throw new UnsupportedOperationException();
+  }
+
   public static NameFactory createAlphabet(String alphabet) {
     String[] elements = alphabet.codePoints()
       .mapToObj(it -> new String(new int[]{it}, 0, 1))

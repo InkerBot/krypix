@@ -1,4 +1,4 @@
-package bot.inker.krypix.directory;
+package bot.inker.krypix.common.directory;
 
 public abstract class JoinDictionary implements NameFactory {
   protected int[] indexes = new int[1];

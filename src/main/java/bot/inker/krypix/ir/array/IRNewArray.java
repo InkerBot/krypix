@@ -3,7 +3,7 @@ package bot.inker.krypix.ir.array;
 import bot.inker.krypix.ir.IRAbstract;
 import bot.inker.krypix.ir.ref.TypeRef;
 
-public class IRNewArray implements IRAbstract {
+public final class IRNewArray implements IRAbstract {
   private final TypeRef type;
   private final int dimension;
 

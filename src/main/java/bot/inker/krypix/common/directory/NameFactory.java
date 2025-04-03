@@ -1,4 +1,4 @@
-package bot.inker.krypix.directory;
+package bot.inker.krypix.common.directory;
 
 public interface NameFactory {
   String nextName();

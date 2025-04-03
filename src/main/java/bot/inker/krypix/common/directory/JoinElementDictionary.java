@@ -1,4 +1,4 @@
-package bot.inker.krypix.directory;
+package bot.inker.krypix.common.directory;
 
 public final class JoinElementDictionary extends JoinDictionary {
   private final String split;
