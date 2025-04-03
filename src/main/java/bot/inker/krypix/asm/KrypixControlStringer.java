@@ -5,6 +5,7 @@ import bot.inker.krypix.KrypixMethod;
 import bot.inker.krypix.common.directory.DictionaryMaker;
 import bot.inker.krypix.common.directory.NameFactory;
 import bot.inker.krypix.ir.CodeBlock;
+import bot.inker.krypix.ir.ExceptionHandler;
 import bot.inker.krypix.ir.IRAbstract;
 
 import java.util.HashMap;
@@ -46,6 +47,14 @@ public final class KrypixControlStringer {
 
     for (CodeBlock codeBlock : method.body().codeBlocks()) {
       sb.append(":").append(blockNameFunction.apply(codeBlock)).append("\n");
+      for (ExceptionHandler exceptionHandler : codeBlock.exceptionHandlers()) {
+        if (exceptionHandler.catchType() == null) {
+          sb.append("> finally ");
+        } else {
+          sb.append("> catch ").append(exceptionHandler.catchType()).append(" ");
+        }
+        sb.append(blockNameFunction.apply(exceptionHandler.handler())).append("\n");
+      }
       for (IRAbstract instruction : codeBlock.instructions()) {
         sb.append(irToString(instruction)).append("\n");
       }

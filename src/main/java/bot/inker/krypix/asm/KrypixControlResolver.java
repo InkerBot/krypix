@@ -26,6 +26,9 @@ import bot.inker.krypix.ir.ref.*;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ConstantDynamic;
 import org.objectweb.asm.Handle;
@@ -111,6 +114,8 @@ public final class KrypixControlResolver {
   private final MethodBody methodBody = new MethodBody();
   private final Map<LabelNode, CodeBlock> labelToBlock = new HashMap<>();
   private final Map<LabelNode, List<CodeBlock>> labelEffectiveBlock = new HashMap<>();
+  private final Object2IntMap<LabelNode> labelIds = new Object2IntOpenHashMap<>();
+  private LabelNode[] labelArray;
 
   private CodeBlock currentBlock;
   private LabelNode latestLabel;
@@ -161,8 +166,29 @@ public final class KrypixControlResolver {
       .orElseThrow(() -> new IllegalStateException("No block found for label " + label));
   }
 
+  private void addCode(IRAbstract ir) {
+    if (currentBlock.terminatal() != null && !(ir instanceof IRDocument)) {
+      throw new IllegalArgumentException("Cannot add code after terminatl");
+    }
+    currentBlock.addCode(ir);
+  }
+
+  private void updateCurrentBlock(CodeBlock block) {
+    CodeBlock previousBlock = currentBlock;
+    currentBlock = block;
+
+    if (previousBlock == block) {
+      return;
+    }
+
+    if (previousBlock != null && previousBlock.terminatal() == null) {
+      previousBlock.terminatal(new IRGoto(currentBlock));
+    }
+  }
+
   private void createInitialCodeBlocks() {
     CodeBlock entryBlock = null;
+    int labelId = 0;
     for (AbstractInsnNode instruction : method.methodNode().instructions) {
       if (entryBlock == null) {
         entryBlock = (instruction instanceof LabelNode labelNode)
@@ -171,6 +197,10 @@ public final class KrypixControlResolver {
       } else if (instruction instanceof LabelNode labelNode) {
         createCodeBlock(labelNode, -1);
       }
+
+      if (instruction instanceof LabelNode labelNode) {
+        labelIds.put(labelNode, labelId++);
+      }
     }
 
     if (entryBlock == null) {
@@ -178,13 +208,29 @@ public final class KrypixControlResolver {
     }
 
     methodBody.entryBlock(entryBlock);
+    labelArray = new LabelNode[labelId];
+    for (Object2IntMap.Entry<LabelNode> entry : labelIds.object2IntEntrySet()) {
+      labelArray[entry.getIntValue()] = entry.getKey();
+    }
   }
 
-  private void addCode(IRAbstract ir) {
-    if (currentBlock.terminatal() != null && !(ir instanceof IRDocument)) {
-      throw new IllegalArgumentException("Cannot add code after terminatl");
+  private void configureCatchBlocks() {
+    if (method.methodNode().tryCatchBlocks == null) {
+      return;
     }
-    currentBlock.addCode(ir);
+    for (TryCatchBlockNode tryCatchBlock : method.methodNode().tryCatchBlocks) {
+      int startId = labelIds.getInt(tryCatchBlock.start);
+      int endId = labelIds.getInt(tryCatchBlock.end);
+
+      for (int i = startId; i < endId; i++) {
+        labelEffectiveBlock.get(labelArray[i]).forEach(codeBlock -> {
+          codeBlock.addExceptionHandler(new ExceptionHandler(
+            tryCatchBlock.type == null ? null : appView.parseClassRef(tryCatchBlock.type),
+            labelToBlock.get(tryCatchBlock.handler)
+          ));
+        });
+      }
+    }
   }
 
   public MethodBody resolve() {
@@ -194,28 +240,18 @@ public final class KrypixControlResolver {
     latestLabel = null;
     for (AbstractInsnNode instruction : method.methodNode().instructions) {
       if (instruction instanceof LabelNode labelNode) {
-        CodeBlock previousBlock = currentBlock;
-        currentBlock = labelToBlock.get(labelNode);
-
-        if (currentBlock == previousBlock) {
-          continue;
-        }
-
-        if (previousBlock != null && previousBlock.terminatal() == null) {
-          previousBlock.terminatal(new IRGoto(currentBlock));
-        }
-
         latestLabel = labelNode;
+        updateCurrentBlock(labelToBlock.get(labelNode));
+        continue;
+      } else if (instruction.getOpcode() < 0) {
+        resolveDocument(instruction);
         continue;
       }
 
       if (currentBlock.terminatal() != null) {
-        currentBlock = createCodeBlock(latestLabel, methodBody.codeBlocks().indexOf(currentBlock) + 1);
-      }
-
-      if (instruction.getOpcode() < 0) {
-        resolveDocument(instruction);
-        continue;
+        updateCurrentBlock(
+          createCodeBlock(latestLabel, methodBody.codeBlocks().indexOf(currentBlock) + 1)
+        );
       }
 
       RESOLVERS.getOrDefault(instruction.getOpcode(), KrypixControlResolver::resolveUnknown)
@@ -226,6 +262,7 @@ public final class KrypixControlResolver {
       methodBody.codeBlocks().remove(currentBlock);
     }
 
+    configureCatchBlocks();
     return methodBody;
   }
 
@@ -437,10 +474,9 @@ public final class KrypixControlResolver {
     Preconditions.checkArgument(insnNode instanceof JumpInsnNode, "Expected JumpInsnNode, got %s", insnNode);
 
     CodeBlock previousBlock = currentBlock;
-    currentBlock = createCodeBlock(null, methodBody.codeBlocks().indexOf(previousBlock) + 1);
-    if (latestLabel != null) {
-      labelEffectiveBlock.computeIfAbsent(latestLabel, k -> new ArrayList<>()).add(currentBlock);
-    }
+    updateCurrentBlock(
+      createCodeBlock(latestLabel, methodBody.codeBlocks().indexOf(previousBlock) + 1)
+    );
     CodeBlock targetBlock = requireBlock(((JumpInsnNode) insnNode).label);
 
     IRTerminatal terminatal;
