@@ -2,7 +2,6 @@ package bot.inker.krypix.ir;
 
 import com.google.common.base.Preconditions;
 import org.objectweb.asm.Handle;
-import org.objectweb.asm.Type;
 
 public final class IRConst implements IRAbstract {
   private final Type type;
@@ -11,68 +10,6 @@ public final class IRConst implements IRAbstract {
   public IRConst(Type type, Object value) {
     this.type = type;
     this.value = value;
-  }
-
-  public Type type() {
-    return type;
-  }
-
-  public BaseFrameType baseType() {
-    return type.baseType();
-  }
-
-  public Object value() {
-    return value;
-  }
-
-  public boolean booleanValue() {
-    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
-    return (boolean) value;
-  }
-
-  public byte byteValue() {
-    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
-    return (byte) value;
-  }
-
-  public char charValue() {
-    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
-    return (char) value;
-  }
-
-  public int intValue() {
-    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
-    return (int) value;
-  }
-
-  public float floatValue() {
-    Preconditions.checkState(type == Type.FLOAT, "Expected type FLOAT, got %s", type);
-    return (float) value;
-  }
-
-  public long longValue() {
-    Preconditions.checkState(type == Type.LONG, "Expected type LONG, got %s", type);
-    return (long) value;
-  }
-
-  public double doubleValue() {
-    Preconditions.checkState(type == Type.DOUBLE, "Expected type DOUBLE, got %s", type);
-    return (double) value;
-  }
-
-  public String stringValue() {
-    Preconditions.checkState(type == Type.STRING, "Expected type STRING, got %s", type);
-    return (String) value;
-  }
-
-  public org.objectweb.asm.Type typeValue() {
-    Preconditions.checkState(type == Type.TYPE, "Expected type TYPE, got %s", type);
-    return (org.objectweb.asm.Type) value;
-  }
-
-  public Handle handleValue() {
-    Preconditions.checkState(type == Type.HANDLE, "Expected type HANDLE, got %s", type);
-    return (Handle) value;
   }
 
   public static IRConst createNull() {
@@ -145,6 +82,68 @@ public final class IRConst implements IRAbstract {
     } else {
       throw new IllegalArgumentException("Unsupported value type: " + value.getClass());
     }
+  }
+
+  public Type type() {
+    return type;
+  }
+
+  public BaseFrameType baseType() {
+    return type.baseType();
+  }
+
+  public Object value() {
+    return value;
+  }
+
+  public boolean booleanValue() {
+    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
+    return (boolean) value;
+  }
+
+  public byte byteValue() {
+    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
+    return (byte) value;
+  }
+
+  public char charValue() {
+    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
+    return (char) value;
+  }
+
+  public int intValue() {
+    Preconditions.checkState(type == Type.INT, "Expected type INT, got %s", type);
+    return (int) value;
+  }
+
+  public float floatValue() {
+    Preconditions.checkState(type == Type.FLOAT, "Expected type FLOAT, got %s", type);
+    return (float) value;
+  }
+
+  public long longValue() {
+    Preconditions.checkState(type == Type.LONG, "Expected type LONG, got %s", type);
+    return (long) value;
+  }
+
+  public double doubleValue() {
+    Preconditions.checkState(type == Type.DOUBLE, "Expected type DOUBLE, got %s", type);
+    return (double) value;
+  }
+
+  public String stringValue() {
+    Preconditions.checkState(type == Type.STRING, "Expected type STRING, got %s", type);
+    return (String) value;
+  }
+
+  public org.objectweb.asm.Type typeValue() {
+    Preconditions.checkState(type == Type.TYPE, "Expected type TYPE, got %s", type);
+    return (org.objectweb.asm.Type) value;
+  }
+
+  public Handle handleValue() {
+    Preconditions.checkState(type == Type.HANDLE, "Expected type HANDLE, got %s", type);
+    return (Handle) value;
   }
 
   public enum Type {

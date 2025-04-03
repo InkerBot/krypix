@@ -65,7 +65,7 @@ public final class KrypixObfuscate {
     private int randomStatus = 0;
     private ObfuscateRandom random;
     private File tempDir;
-    private boolean withStandardScope = true;
+    private final boolean withStandardScope = true;
 
     public Builder random(ObfuscateRandom random) {
       if (randomStatus == 2) {

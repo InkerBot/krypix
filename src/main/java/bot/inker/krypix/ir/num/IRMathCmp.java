@@ -21,6 +21,6 @@ public final class IRMathCmp implements IRMath {
   }
 
   public enum Operation {
-    CMP, CMPL, CMPG;
+    CMP, CMPL, CMPG
   }
 }

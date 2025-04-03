@@ -21,6 +21,6 @@ public final class IRMathUnary implements IRMath {
   }
 
   public enum Operation {
-    NEG;
+    NEG
   }
 }

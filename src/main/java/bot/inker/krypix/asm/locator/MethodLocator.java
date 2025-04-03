@@ -47,7 +47,7 @@ public final class MethodLocator {
 
   @SuppressWarnings("StringEquality")
   private Stream<KrypixClass> locateOwner() {
-    return  (owner == ANY)
+    return (owner == ANY)
       ? appView.allClasses()
       : appView.getClasses(owner);
   }

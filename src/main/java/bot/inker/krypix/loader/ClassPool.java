@@ -3,7 +3,10 @@ package bot.inker.krypix.loader;
 import bot.inker.krypix.KrypixClass;
 import bot.inker.krypix.KrypixScope;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public final class ClassPool {
   private final KrypixScope scope;

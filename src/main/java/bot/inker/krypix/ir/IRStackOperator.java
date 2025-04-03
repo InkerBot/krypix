@@ -10,13 +10,13 @@ public final class IRStackOperator implements IRAbstract {
     this.type = type;
   }
 
-  public Type type() {
-    return type;
-  }
-
   public static IRStackOperator fromOpcode(int opcode) {
     Preconditions.checkArgument(opcode >= Opcodes.POP && opcode <= Opcodes.SWAP, "Invalid opcode: %d", opcode);
     return new IRStackOperator(Type.values()[opcode - Opcodes.POP]);
+  }
+
+  public Type type() {
+    return type;
   }
 
   public enum Type {

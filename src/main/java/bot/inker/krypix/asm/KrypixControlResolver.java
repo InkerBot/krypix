@@ -80,7 +80,9 @@ public final class KrypixControlResolver {
     registerResolver(KrypixControlResolver::resolveGoto, Opcodes.GOTO);
     registerResolver(KrypixControlResolver::resolveSwitch,
       Opcodes.LOOKUPSWITCH, Opcodes.TABLESWITCH);
-    registerResolver((resolver, insnNode) -> { throw new IllegalStateException("Unresolved opcode"); },
+    registerResolver((resolver, insnNode) -> {
+        throw new IllegalStateException("Unresolved opcode");
+      },
       Opcodes.JSR, Opcodes.RET);
     registerResolver(KrypixControlResolver::resolveReturn,
       Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN, Opcodes.RETURN);
@@ -100,7 +102,7 @@ public final class KrypixControlResolver {
   private CodeBlock currentBlock;
   private LabelNode latestLabel;
 
-  public KrypixControlResolver(AppView appView,  KrypixMethod method) {
+  public KrypixControlResolver(AppView appView, KrypixMethod method) {
     this.appView = appView;
     this.method = method;
   }
@@ -394,8 +396,7 @@ public final class KrypixControlResolver {
       "Expected LookupSwitchInsnNode or TableSwitchInsnNode, got %s", insnNode);
 
     var builder = new IRBranchSwitch.Builder();
-    if (insnNode instanceof LookupSwitchInsnNode) {
-      LookupSwitchInsnNode lookupSwitchInsnNode = (LookupSwitchInsnNode) insnNode;
+    if (insnNode instanceof LookupSwitchInsnNode lookupSwitchInsnNode) {
 
       for (int i = 0; i < lookupSwitchInsnNode.keys.size(); i++) {
         CodeBlock targetBlock = requireBlock(lookupSwitchInsnNode.labels.get(i));
@@ -434,9 +435,9 @@ public final class KrypixControlResolver {
 
     FieldInsnNode fieldInsnNode = (FieldInsnNode) insnNode;
     @Nullable KrypixField krypixField = appView.getClass(fieldInsnNode.owner)
-       .flatMap(clazz -> clazz.fields().stream()
-         .filter(it -> fieldInsnNode.name.equals(it.name()) && fieldInsnNode.desc.equals(it.desc()))
-         .findFirst())
+      .flatMap(clazz -> clazz.fields().stream()
+        .filter(it -> fieldInsnNode.name.equals(it.name()) && fieldInsnNode.desc.equals(it.desc()))
+        .findFirst())
       .orElse(null);
     boolean isStatic = (insnNode.getOpcode() == Opcodes.GETSTATIC || insnNode.getOpcode() == Opcodes.PUTSTATIC);
 

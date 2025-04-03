@@ -97,7 +97,7 @@ public final class ClassHierarchy {
     var result = new HashMap<KrypixMethod, List<KrypixMethod>>();
     new ConnectivityInspector<>(G)
       .connectedSets()
-      .forEach(connectedSet ->{
+      .forEach(connectedSet -> {
         var methodGroup = new ArrayList<>(connectedSet);
         for (KrypixMethod method : connectedSet) {
           result.put(method, methodGroup);

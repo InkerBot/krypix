@@ -1,7 +1,5 @@
 package bot.inker.krypix.ir.field;
 
-import bot.inker.krypix.KrypixField;
-
 public final class IRFieldLoadUnknown implements IRFieldLoad {
   private final boolean isStatic;
   private final String owner;

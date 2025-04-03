@@ -2,11 +2,7 @@ package bot.inker.krypix.ir.branch;
 
 import bot.inker.krypix.ir.CodeBlock;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-
-import java.util.Map;
 
 public final class IRBranchSwitch implements IRBranch {
   private final Int2ObjectMap<CodeBlock> branches;
@@ -17,16 +13,16 @@ public final class IRBranchSwitch implements IRBranch {
     this.defaultBranch = defaultBranch;
   }
 
+  public static Builder builder() {
+    return new Builder();
+  }
+
   public Int2ObjectMap<CodeBlock> branches() {
     return branches;
   }
 
   public CodeBlock defaultBranch() {
     return defaultBranch;
-  }
-
-  public static Builder builder() {
-    return new Builder();
   }
 
   public static class Builder {

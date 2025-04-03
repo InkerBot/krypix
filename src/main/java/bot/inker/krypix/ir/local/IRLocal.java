@@ -5,5 +5,6 @@ import bot.inker.krypix.ir.IRAbstract;
 
 public interface IRLocal extends IRAbstract {
   BaseFrameType type();
+
   int index();
 }

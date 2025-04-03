@@ -12,10 +12,10 @@ public final class KrypixResource implements WithAttachment.Contained {
 
   private final KrypixScope scope;
   private final String sourceFullPath;
-  private String fullPath;
   private final Consumer<String> renameConsumer;
   private final Consumer<byte[]> setConsumer;
   private final Supplier<byte[]> getSupplier;
+  private String fullPath;
 
   public KrypixResource(
     KrypixScope scope,

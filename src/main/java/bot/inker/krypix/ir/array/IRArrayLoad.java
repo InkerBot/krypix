@@ -1,6 +1,5 @@
 package bot.inker.krypix.ir.array;
 
-import bot.inker.krypix.ir.BaseFrameType;
 import bot.inker.krypix.ir.BaseValueType;
 
 public final class IRArrayLoad implements IRArrayOperator {

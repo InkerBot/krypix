@@ -21,6 +21,6 @@ public final class IRMathBitwise implements IRMath {
   }
 
   public enum Operation {
-    SHL, SHR, USHR, AND, OR, XOR;
+    SHL, SHR, USHR, AND, OR, XOR
   }
 }

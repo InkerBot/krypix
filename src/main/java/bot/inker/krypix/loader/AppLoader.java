@@ -1,19 +1,13 @@
 package bot.inker.krypix.loader;
 
-import bot.inker.krypix.AppView;
-import bot.inker.krypix.KrypixResource;
 import bot.inker.krypix.common.attachment.AttachmentValue;
 import bot.inker.krypix.util.StopWatchUtil;
 import bot.inker.krypix.util.uncheck.UncheckUtil;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.zip.ZipFile;
 
@@ -99,6 +93,6 @@ public final class AppLoader {
   }
 
   public interface Visitor {
-    void visit(String path, byte[] bytes, AttachmentValue<?> ... attachments) throws IOException;
+    void visit(String path, byte[] bytes, AttachmentValue<?>... attachments) throws IOException;
   }
 }

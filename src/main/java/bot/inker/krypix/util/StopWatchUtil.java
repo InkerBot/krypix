@@ -9,42 +9,42 @@ public final class StopWatchUtil {
     throw new UnsupportedOperationException();
   }
 
-  public static <R> R debugStopWatch(Logger logger, String message, Supplier<R> supplier, Object ... args) {
+  public static <R> R debugStopWatch(Logger logger, String message, Supplier<R> supplier, Object... args) {
     if (logger.isDebugEnabled()) {
-      logger.debug("Start " + message, (Object[]) args);
+      logger.debug("Start " + message, args);
       var start = System.currentTimeMillis();
       var result = supplier.get();
       var passed = System.currentTimeMillis() - start;
 
-      logger.debug("Run " + message + " success [" + passed + " ms]", (Object[]) args);
+      logger.debug("Run " + message + " success [" + passed + " ms]", args);
       return result;
     } else {
       return supplier.get();
     }
   }
 
-  public static void debugStopWatch(Logger logger, String message, Runnable runnable, Object ... args) {
+  public static void debugStopWatch(Logger logger, String message, Runnable runnable, Object... args) {
     debugStopWatch(logger, message, () -> {
       runnable.run();
       return null;
     }, args);
   }
 
-  public static <R> R infoStopWatch(Logger logger, String message, Supplier<R> supplier, Object ... args) {
+  public static <R> R infoStopWatch(Logger logger, String message, Supplier<R> supplier, Object... args) {
     if (logger.isInfoEnabled()) {
-      logger.info("Start " + message, (Object[]) args);
+      logger.info("Start " + message, args);
       var start = System.currentTimeMillis();
       var result = supplier.get();
       var passed = System.currentTimeMillis() - start;
 
-      logger.info("Run " + message + " success [" + passed + " ms]", (Object[]) args);
+      logger.info("Run " + message + " success [" + passed + " ms]", args);
       return result;
     } else {
       return supplier.get();
     }
   }
 
-  public static void infoStopWatch(Logger logger, String message, Runnable runnable, Object ... args) {
+  public static void infoStopWatch(Logger logger, String message, Runnable runnable, Object... args) {
     infoStopWatch(logger, message, () -> {
       runnable.run();
       return null;
