@@ -45,6 +45,7 @@ public final class IRInvokeMethod implements IRInvoke {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("invoke").append(type.name().toLowerCase()).append(" ");
+    sb.append(owner().name()).append(" ");
     sb.append(method.name()).append(" ").append(method.desc());
     if (isInterface) {
       sb.append(" interface");

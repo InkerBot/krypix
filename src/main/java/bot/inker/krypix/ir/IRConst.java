@@ -5,6 +5,7 @@ import bot.inker.krypix.ir.handle.IRHandle;
 import bot.inker.krypix.ir.ref.MethodType;
 import bot.inker.krypix.ir.ref.TypeRef;
 import com.google.common.base.Preconditions;
+import org.apache.commons.text.StringEscapeUtils;
 
 public final class IRConst implements IRAbstract {
   private final Type type;
@@ -176,7 +177,14 @@ public final class IRConst implements IRAbstract {
 
   @Override
   public String toString() {
-    return "const " + type.name().toLowerCase() + " " + value;
+    StringBuilder sb = new StringBuilder();
+    sb.append("const ").append(type.name().toLowerCase()).append(" ");
+    if (value instanceof String) {
+      sb.append('"').append(StringEscapeUtils.escapeJava((String) value)).append('"');
+    } else {
+      sb.append(value);
+    }
+    return sb.toString();
   }
 
   public enum Type {
