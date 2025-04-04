@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -139,17 +140,21 @@ public final class ResourcePool {
 
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
     try (ZipOutputStream zipOut = switch (resource.extension()) {
-      case "zip" -> new ZipOutputStream(bout);
+      case "zip", "jmod" -> new ZipOutputStream(bout);
       case "jar" -> new JarOutputStream(bout);
       default -> throw new IllegalStateException("Unsupported archive type: " + resource.extension());
     }) {
       resource.getAttachment(ResourceAttachments.ARCHIVE_COMMENT)
         .ifPresent(zipOut::setComment);
 
-      for (KrypixResource nestedResource : saveData.nestedResources) {
+      Stream.concat(
+        saveData.nestedResources.stream().filter(it -> "META-INF/MANIFEST.MF".equals(it.path())),
+        saveData.nestedResources.stream().filter(it -> !"META-INF/MANIFEST.MF".equals(it.path()))
+          .sorted(Comparator.comparing(KrypixResource::path))
+      ).forEach(UncheckUtil.uncheckConsumer(nestedResource -> {
         var entryName = FullPathUtil.getShortPath(nestedResource.fullPath());
         ZipEntry entry = switch (resource.extension()) {
-          case "zip" -> new ZipEntry(entryName);
+          case "zip", "jmod" -> new ZipEntry(entryName);
           case "jar" -> new JarEntry(entryName);
           default -> throw new IllegalStateException("Unsupported archive type: " + resource.extension());
         };
@@ -157,7 +162,7 @@ public final class ResourcePool {
         zipOut.putNextEntry(entry);
         zipOut.write(nestedResource.getBytes());
         zipOut.closeEntry();
-      }
+      }));
     } catch (IOException e) {
       throw UncheckUtil.uncheck(e);
     }

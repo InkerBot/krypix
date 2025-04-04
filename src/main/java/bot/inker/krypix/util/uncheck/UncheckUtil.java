@@ -1,5 +1,6 @@
 package bot.inker.krypix.util.uncheck;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -46,6 +47,16 @@ public final class UncheckUtil {
     };
   }
 
+  public static <T> Consumer<T> uncheckConsumer(UncheckConsumer<T> consumer) {
+    return t -> {
+      try {
+        consumer.accept(t);
+      } catch (Throwable throwable) {
+        throw uncheckImpl(throwable);
+      }
+    };
+  }
+
   @FunctionalInterface
   public interface UncheckRunnable {
     void run() throws Throwable;
@@ -59,5 +70,10 @@ public final class UncheckUtil {
   @FunctionalInterface
   public interface UncheckFunction<T, R> {
     R apply(T t) throws Throwable;
+  }
+
+  @FunctionalInterface
+  public interface UncheckConsumer<T> {
+    void accept(T t) throws Throwable;
   }
 }
