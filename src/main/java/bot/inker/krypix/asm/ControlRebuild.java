@@ -36,6 +36,7 @@ public final class ControlRebuild {
   private final MethodBody methodBody;
 
   private final InsnList insnList = new InsnList();
+  private final List<LocalVariableNode> localVariables = new ArrayList<>();
   private final List<TryCatchBlockNode> tryCatchBlocks = new ArrayList<>();
 
   public ControlRebuild(AppView appView, KrypixMethod method) {
@@ -260,6 +261,16 @@ public final class ControlRebuild {
             exceptionHandler.catchType() == null ? null : exceptionHandler.catchType().name()
           ));
         }
+        for (LocalVariable localVariable : codeBlock.localVariables()) {
+          localVariables.add(new LocalVariableNode(
+            localVariable.name(),
+            localVariable.desc().desc(),
+            localVariable.signature().orElse(null),
+            labelNode,
+            nextLabel,
+            localVariable.index()
+          ));
+        }
       }
 
       if (nextBlock == null && nextLabel != null) {
@@ -267,6 +278,7 @@ public final class ControlRebuild {
       }
     }
 
+    method.methodNode().localVariables = localVariables;
     method.methodNode().tryCatchBlocks = tryCatchBlocks;
     method.methodNode().instructions = insnList;
   }

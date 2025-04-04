@@ -214,10 +214,11 @@ public final class ControlResolver {
     }
   }
 
-  private void configureCatchBlocks() {
+  private void configureBlocks() {
     if (method.methodNode().tryCatchBlocks == null) {
       return;
     }
+
     for (TryCatchBlockNode tryCatchBlock : method.methodNode().tryCatchBlocks) {
       int startId = labelIds.getInt(tryCatchBlock.start);
       int endId = labelIds.getInt(tryCatchBlock.end);
@@ -231,6 +232,22 @@ public final class ControlResolver {
         });
       }
     }
+
+    for (LocalVariableNode localVariable : method.methodNode().localVariables) {
+      int startId = labelIds.getInt(localVariable.start);
+      int endId = labelIds.getInt(localVariable.end);
+
+      for (int i = startId; i < endId; i++) {
+        labelEffectiveBlock.get(labelArray[i]).forEach(codeBlock -> {
+          codeBlock.addLocalVariable(new LocalVariable(
+            localVariable.name,
+            appView.parseTypeRef(localVariable.desc),
+            localVariable.signature,
+            localVariable.index
+          ));
+        });
+      }
+    }
   }
 
   private void removeEmptyBlocks() {
@@ -239,8 +256,11 @@ public final class ControlResolver {
     var iterator = methodBody.codeBlocks().listIterator();
     while (iterator.hasNext()) {
       CodeBlock codeBlock = iterator.next();
-      if (codeBlock.instructions().isEmpty() && codeBlock.terminatal() instanceof IRGoto) {
-        blockRedirectMap.put(codeBlock, ((IRGoto) codeBlock.terminatal()).target());
+
+      if (codeBlock.instructions().isEmpty() && (codeBlock.terminatal() == null || codeBlock.terminatal() instanceof IRGoto)) {
+        if (codeBlock.terminatal() != null) {
+          blockRedirectMap.put(codeBlock, ((IRGoto) codeBlock.terminatal()).target());
+        }
         iterator.remove();
       }
     }
@@ -253,6 +273,9 @@ public final class ControlResolver {
           break;
         }
         target = nextTarget;
+      }
+      if (!methodBody.codeBlocks().contains(target)) {
+        throw new IllegalStateException("Target block not found in method body: " + target);
       }
       return target;
     };
@@ -306,7 +329,7 @@ public final class ControlResolver {
       RESOLVERS.getOrDefault(instruction.getOpcode(), ControlResolver::resolveUnknown)
         .accept(this, instruction);
     }
-    configureCatchBlocks();
+    configureBlocks();
     removeEmptyBlocks();
     return methodBody;
   }

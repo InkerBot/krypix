@@ -33,8 +33,6 @@ public class Main {
 
     obfuscate.appView().build();
 
-    obfuscate.appView().finish();
-
     obfuscate.appView().allClasses()
       .filter(clazz -> clazz.scope().mutable())
       .forEach(clazz -> {
@@ -57,6 +55,8 @@ public class Main {
           }
         }
       });
+
+    obfuscate.appView().finish();
 
     obfuscate.appView().scope(KrypixStandards.SCOPE_PROGRAM)
       .save(new File("output"));

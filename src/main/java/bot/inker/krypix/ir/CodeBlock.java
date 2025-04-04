@@ -14,6 +14,7 @@ public final class CodeBlock implements WithAttachment.Contained {
   private final long id = ID_GENERATOR.getAndIncrement();
   private final AttachmentContainer container = new AttachmentContainer();
   private final List<IRAbstract> instructions = new ArrayList<>();
+  private final List<LocalVariable> localVariables = new ArrayList<>();
   private final List<ExceptionHandler> exceptionHandlers = new ArrayList<>();
   private IRTerminatal terminatal;
 
@@ -26,6 +27,10 @@ public final class CodeBlock implements WithAttachment.Contained {
     return instructions;
   }
 
+  public List<LocalVariable> localVariables() {
+    return localVariables;
+  }
+
   public List<ExceptionHandler> exceptionHandlers() {
     return exceptionHandlers;
   }
@@ -36,6 +41,10 @@ public final class CodeBlock implements WithAttachment.Contained {
 
   public void addCode(IRAbstract instruction) {
     instructions.add(instruction);
+  }
+
+  public void addLocalVariable(LocalVariable localVariable) {
+    localVariables.add(localVariable);
   }
 
   public void addExceptionHandler(ExceptionHandler handler) {
