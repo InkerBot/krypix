@@ -1,7 +1,6 @@
 package bot.inker.krypix.ir;
 
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 
 public enum BaseValueType {
   INT(BaseFrameType.INT), LONG(BaseFrameType.LONG), FLOAT(BaseFrameType.FLOAT), DOUBLE(BaseFrameType.DOUBLE), OBJECT(BaseFrameType.OBJECT),

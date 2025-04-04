@@ -22,12 +22,9 @@ public final class IRNewArray implements IRAbstract {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("newarray ");
-    for (int i = 0; i < dimension; i++) {
-      sb.append("[");
-    }
-    sb.append(type);
-    return sb.toString();
+    String sb = "newarray " +
+      "[".repeat(Math.max(0, dimension)) +
+      type;
+    return sb;
   }
 }

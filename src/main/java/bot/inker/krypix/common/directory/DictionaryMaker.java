@@ -1,10 +1,8 @@
 package bot.inker.krypix.common.directory;
 
 import bot.inker.krypix.common.random.ObfuscateRandom;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public final class DictionaryMaker {
   private DictionaryMaker() {
@@ -59,7 +57,7 @@ public final class DictionaryMaker {
   }
 
   private static <T> void shuffle(T[] array, ObfuscateRandom random) {
-    for(int i = array.length; i > 1; --i) {
+    for (int i = array.length; i > 1; --i) {
       T temp = array[i - 1];
       int j = random.nextInt(i);
       array[i - 1] = array[j];
@@ -81,12 +79,13 @@ public final class DictionaryMaker {
 
   public static NameFactory createUtf16InvalidCodePoint(ObfuscateRandom random) {
     String[] elements = IntStream.concat(
-      IntStream.of(0xD800),
-      IntStream.rangeClosed(0xDC00, 0xDCFF)
-    ).mapToObj(it -> new String(new int[]{it}, 0, 1))
+        IntStream.of(0xD800),
+        IntStream.rangeClosed(0xDC00, 0xDCFF)
+      ).mapToObj(it -> new String(new int[]{it}, 0, 1))
       .toArray(String[]::new);
     if (random != null) {
       shuffle(elements, random);
     }
-    return createElements(elements);  }
+    return createElements(elements);
+  }
 }

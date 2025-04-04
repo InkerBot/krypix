@@ -21,7 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class AppView {
@@ -252,24 +255,24 @@ public final class AppView {
     );
 
     StopWatchUtil.infoStopWatch(logger, "Apply classes body", () -> scopes.values().stream()
-        .filter(KrypixScope::mutable)
-        .flatMap(scope -> scope.classPool().all().stream())
-        .forEach(clazz -> {
-          byte[] bytes;
+      .filter(KrypixScope::mutable)
+      .flatMap(scope -> scope.classPool().all().stream())
+      .forEach(clazz -> {
+        byte[] bytes;
 
-          try {
-            ClassWriter writer = new HierarchyClassWriter(this, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-            clazz.classNode().accept(writer);
-            bytes = writer.toByteArray();
-          } catch (Exception e) {
-            logger.error("Failed to write class {}, use falling back method, which may cause exception", clazz, e);
+        try {
+          ClassWriter writer = new HierarchyClassWriter(this, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+          clazz.classNode().accept(writer);
+          bytes = writer.toByteArray();
+        } catch (Exception e) {
+          logger.error("Failed to write class {}, use falling back method, which may cause exception", clazz, e);
 
-            ClassWriter writer = new HierarchyClassWriter(this, 0);
-            clazz.classNode().accept(writer);
-            bytes = writer.toByteArray();
-          }
-          clazz.resource().setBytes(bytes);
-        })
+          ClassWriter writer = new HierarchyClassWriter(this, 0);
+          clazz.classNode().accept(writer);
+          bytes = writer.toByteArray();
+        }
+        clazz.resource().setBytes(bytes);
+      })
     );
   }
 }

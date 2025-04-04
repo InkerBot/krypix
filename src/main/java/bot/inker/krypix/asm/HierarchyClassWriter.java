@@ -55,7 +55,7 @@ public final class HierarchyClassWriter extends ClassWriter {
     return appView.hierarchy().getCommonSuperClass(class1.get(), class2.get()).name();
   }
 
-  protected String getCommonSuperClassFromClassPath(final String type1, final String type2) {
+  private String getCommonSuperClassFromClassPath(final String type1, final String type2) {
     try {
       ClassReader info1 = typeInfo(type1);
       ClassReader info2 = typeInfo(type2);

@@ -1,8 +1,6 @@
 package bot.inker.krypix.common.attachment;
 
 import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import java.util.function.Supplier;
 
 public interface WithAttachment {

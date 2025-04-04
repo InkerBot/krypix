@@ -59,7 +59,7 @@ public class Main {
       });
 
     obfuscate.appView().scope(KrypixStandards.SCOPE_PROGRAM)
-        .save(new File("output"));
+      .save(new File("output"));
     System.out.println();
   }
 }
