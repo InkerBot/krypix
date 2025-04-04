@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class KrypixControlResolver {
@@ -233,6 +234,55 @@ public final class KrypixControlResolver {
     }
   }
 
+  private void removeEmptyBlocks() {
+    Map<CodeBlock, CodeBlock> blockRedirectMap = new HashMap<>();
+
+    var iterator = methodBody.codeBlocks().listIterator();
+    while (iterator.hasNext()) {
+      CodeBlock codeBlock = iterator.next();
+      if (codeBlock.instructions().isEmpty() && codeBlock.terminatal() instanceof IRGoto) {
+        blockRedirectMap.put(codeBlock, ((IRGoto) codeBlock.terminatal()).target());
+        iterator.remove();
+      }
+    }
+
+    Function<CodeBlock, CodeBlock> findRedirectedBlock = block -> {
+      CodeBlock target = block;
+      while (true) {
+        CodeBlock nextTarget = blockRedirectMap.get(target);
+        if (nextTarget == null) {
+          break;
+        }
+        target = nextTarget;
+      }
+      return target;
+    };
+
+    for (CodeBlock block : methodBody.codeBlocks()) {
+      if (block.terminatal() instanceof IRGoto gotoInstruction) {
+        CodeBlock target = findRedirectedBlock.apply(gotoInstruction.target());
+        block.terminatal(new IRGoto(target));
+      } else if (block.terminatal() instanceof IRBranchIf branchInstruction) {
+        CodeBlock target = findRedirectedBlock.apply(branchInstruction.target());
+        CodeBlock alternative = findRedirectedBlock.apply(branchInstruction.alternative());
+        block.terminatal(new IRBranchIf(branchInstruction.operator(), target, alternative));
+      } else if (block.terminatal() instanceof IRBranchSwitch switchInstruction) {
+        var newBuilder = IRBranchSwitch.builder();
+        newBuilder.defaultBranch(switchInstruction.defaultBranch());
+        switchInstruction.branches().forEach((key, value) ->
+          newBuilder.addBranch(key, findRedirectedBlock.apply(value)));
+        block.terminatal(newBuilder.build());
+      }
+
+      var listIterator = block.exceptionHandlers().listIterator();
+      while (listIterator.hasNext()) {
+        ExceptionHandler exceptionHandler = listIterator.next();
+        CodeBlock target = findRedirectedBlock.apply(exceptionHandler.handler());
+        listIterator.set(new ExceptionHandler(exceptionHandler.catchType(), target));
+      }
+    }
+  }
+
   public MethodBody resolve() {
     createInitialCodeBlocks();
 
@@ -257,12 +307,8 @@ public final class KrypixControlResolver {
       RESOLVERS.getOrDefault(instruction.getOpcode(), KrypixControlResolver::resolveUnknown)
         .accept(this, instruction);
     }
-
-    if (currentBlock != null && currentBlock.terminatal() == null) {
-      methodBody.codeBlocks().remove(currentBlock);
-    }
-
     configureCatchBlocks();
+    removeEmptyBlocks();
     return methodBody;
   }
 
