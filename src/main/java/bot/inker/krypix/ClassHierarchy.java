@@ -124,7 +124,7 @@ public final class ClassHierarchy {
   }
 
   public boolean isAssignableFrom(KrypixClass classA, KrypixClass classB) {
-    return instanceOf(classA, classB);
+    return instanceOf(classB, classA);
   }
 
   public boolean instanceOf(KrypixClass classA, KrypixClass classB) {

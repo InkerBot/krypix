@@ -80,6 +80,10 @@ public final class TypeRef {
     };
   }
 
+  public String internalName() {
+    return Type.getType(desc()).getInternalName();
+  }
+
   public String desc() {
     if (elementType instanceof Integer) {
       return "[".repeat(dimensions) + switch ((Integer) elementType) {
@@ -111,6 +115,20 @@ public final class TypeRef {
     }
   }
 
+  public int opcode() {
+    return switch (sort()) {
+      case Type.BOOLEAN -> Opcodes.T_BOOLEAN;
+      case Type.CHAR -> Opcodes.T_CHAR;
+      case Type.BYTE -> Opcodes.T_BYTE;
+      case Type.SHORT -> Opcodes.T_SHORT;
+      case Type.INT -> Opcodes.T_INT;
+      case Type.FLOAT -> Opcodes.T_FLOAT;
+      case Type.LONG -> Opcodes.T_LONG;
+      case Type.DOUBLE -> Opcodes.T_DOUBLE;
+      default -> throw new IllegalStateException("Unknown type sort");
+    };
+  }
+
   public TypeRef elementType() {
     if (dimensions == 0) {
       return this;
@@ -129,6 +147,15 @@ public final class TypeRef {
       case Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT,
            Type.FLOAT, Type.ARRAY, Type.OBJECT -> 1;
       case Type.LONG, Type.DOUBLE -> 2;
+      default -> throw new IllegalStateException("Unknown type sort");
+    };
+  }
+
+  public boolean isPrimitive() {
+    return switch (sort()) {
+      case Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT,
+           Type.FLOAT, Type.LONG, Type.DOUBLE -> true;
+      case Type.ARRAY, Type.OBJECT -> false;
       default -> throw new IllegalStateException("Unknown type sort");
     };
   }

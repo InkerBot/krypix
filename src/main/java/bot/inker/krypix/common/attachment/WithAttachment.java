@@ -1,10 +1,16 @@
 package bot.inker.krypix.common.attachment;
 
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.function.Supplier;
 
 public interface WithAttachment {
   <T> Optional<T> getAttachment(AttachmentKey<T> key);
+
+  default <T> T requireAttachment(AttachmentKey<T> key) {
+    return getAttachment(key).orElseThrow(() -> new IllegalStateException("No attachment found for key: " + key));
+  }
 
   <T> void setAttachment(AttachmentKey<T> key, T value);
 

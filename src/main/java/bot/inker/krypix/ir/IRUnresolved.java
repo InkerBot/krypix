@@ -11,7 +11,7 @@ public final class IRUnresolved implements IRAbstract {
     this.insnNode = insnNode;
   }
 
-  public AbstractInsnNode insnNode() {
+  public AbstractInsnNode getCloned() {
     return insnNode.clone(Collections.emptyMap());
   }
 

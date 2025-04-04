@@ -26,7 +26,6 @@ import bot.inker.krypix.ir.ref.*;
 import com.google.common.base.Preconditions;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.Nullable;
@@ -43,70 +42,70 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public final class KrypixControlResolver {
+public final class ControlResolver {
   private static final AttachmentKey<LabelNode> SOURCE_LABEL = AttachmentKey.create("source-label");
-  private static final Int2ObjectMap<BiConsumer<KrypixControlResolver, AbstractInsnNode>> RESOLVERS =
+  private static final Int2ObjectMap<BiConsumer<ControlResolver, AbstractInsnNode>> RESOLVERS =
     new Int2ObjectAVLTreeMap<>();
-  private static final Logger logger = LoggerFactory.getLogger(KrypixControlResolver.class);
+  private static final Logger logger = LoggerFactory.getLogger(ControlResolver.class);
 
   static {
     registerResolver(IRNop::new, Opcodes.NOP);
-    registerResolver(KrypixControlResolver::resolveConst,
+    registerResolver(ControlResolver::resolveConst,
       Opcodes.ACONST_NULL, Opcodes.ICONST_M1, Opcodes.ICONST_0, Opcodes.ICONST_1, Opcodes.ICONST_2,
       Opcodes.ICONST_3, Opcodes.ICONST_4, Opcodes.ICONST_5, Opcodes.LCONST_0, Opcodes.LCONST_1,
       Opcodes.FCONST_0, Opcodes.FCONST_1, Opcodes.FCONST_2, Opcodes.DCONST_0, Opcodes.DCONST_1,
       Opcodes.BIPUSH, Opcodes.SIPUSH);
-    registerResolver(KrypixControlResolver::resolveLdc, Opcodes.LDC);
-    registerResolver(KrypixControlResolver::resolveVar,
+    registerResolver(ControlResolver::resolveLdc, Opcodes.LDC);
+    registerResolver(ControlResolver::resolveVar,
       Opcodes.ILOAD, Opcodes.LLOAD, Opcodes.FLOAD, Opcodes.DLOAD, Opcodes.ALOAD,
       Opcodes.ISTORE, Opcodes.LSTORE, Opcodes.FSTORE, Opcodes.DSTORE, Opcodes.ASTORE);
-    registerResolver(KrypixControlResolver::resolveArray,
+    registerResolver(ControlResolver::resolveArray,
       Opcodes.IALOAD, Opcodes.LALOAD, Opcodes.FALOAD, Opcodes.DALOAD, Opcodes.AALOAD,
       Opcodes.BALOAD, Opcodes.CALOAD, Opcodes.SALOAD, Opcodes.IASTORE, Opcodes.LASTORE,
       Opcodes.FASTORE, Opcodes.DASTORE, Opcodes.AASTORE, Opcodes.BASTORE, Opcodes.CASTORE, Opcodes.SASTORE);
-    registerResolver(KrypixControlResolver::resolveStack,
+    registerResolver(ControlResolver::resolveStack,
       Opcodes.POP, Opcodes.POP2, Opcodes.DUP, Opcodes.DUP_X1, Opcodes.DUP_X2, Opcodes.DUP2, Opcodes.DUP2_X1,
       Opcodes.DUP2_X2, Opcodes.SWAP);
-    registerResolver(KrypixControlResolver::resolveMath,
+    registerResolver(ControlResolver::resolveMath,
       Opcodes.IADD, Opcodes.LADD, Opcodes.FADD, Opcodes.DADD, Opcodes.ISUB, Opcodes.LSUB, Opcodes.FSUB,
       Opcodes.DSUB, Opcodes.IMUL, Opcodes.LMUL, Opcodes.FMUL, Opcodes.DMUL, Opcodes.IDIV, Opcodes.LDIV,
       Opcodes.FDIV, Opcodes.DDIV, Opcodes.IREM, Opcodes.LREM, Opcodes.FREM, Opcodes.DREM, Opcodes.INEG,
       Opcodes.LNEG, Opcodes.FNEG, Opcodes.DNEG, Opcodes.ISHL, Opcodes.LSHL, Opcodes.ISHR, Opcodes.LSHR,
       Opcodes.IUSHR, Opcodes.LUSHR, Opcodes.IAND, Opcodes.LAND, Opcodes.IOR, Opcodes.LOR, Opcodes.IXOR,
       Opcodes.LXOR);
-    registerResolver(KrypixControlResolver::expandIinc, Opcodes.IINC);
-    registerResolver(KrypixControlResolver::resolveCast,
+    registerResolver(ControlResolver::expandIinc, Opcodes.IINC);
+    registerResolver(ControlResolver::resolveCast,
       Opcodes.I2L, Opcodes.I2F, Opcodes.I2D, Opcodes.L2I, Opcodes.L2F, Opcodes.L2D, Opcodes.F2I, Opcodes.F2L,
       Opcodes.F2D, Opcodes.D2I, Opcodes.D2L, Opcodes.D2F, Opcodes.I2B, Opcodes.I2C, Opcodes.I2S);
-    registerResolver(KrypixControlResolver::resolveCmp,
+    registerResolver(ControlResolver::resolveCmp,
       Opcodes.LCMP, Opcodes.FCMPL, Opcodes.FCMPG, Opcodes.DCMPL, Opcodes.DCMPG);
-    registerResolver(KrypixControlResolver::resolveIf,
+    registerResolver(ControlResolver::resolveIf,
       Opcodes.IFEQ, Opcodes.IFNE, Opcodes.IFLT, Opcodes.IFGE, Opcodes.IFGT, Opcodes.IFLE,
       Opcodes.IF_ICMPEQ, Opcodes.IF_ICMPNE, Opcodes.IF_ICMPLT, Opcodes.IF_ICMPGE, Opcodes.IF_ICMPGT, Opcodes.IF_ICMPLE,
       Opcodes.IF_ACMPEQ, Opcodes.IF_ACMPNE, Opcodes.IFNULL, Opcodes.IFNONNULL);
-    registerResolver(KrypixControlResolver::resolveGoto, Opcodes.GOTO);
-    registerResolver(KrypixControlResolver::resolveSwitch,
+    registerResolver(ControlResolver::resolveGoto, Opcodes.GOTO);
+    registerResolver(ControlResolver::resolveSwitch,
       Opcodes.LOOKUPSWITCH, Opcodes.TABLESWITCH);
     registerResolver((resolver, insnNode) -> {
         throw new IllegalStateException("Unsupported opcode: JSR RET");
       },
       Opcodes.JSR, Opcodes.RET);
-    registerResolver(KrypixControlResolver::resolveReturn,
+    registerResolver(ControlResolver::resolveReturn,
       Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN, Opcodes.RETURN);
-    registerResolver(KrypixControlResolver::resolveField,
+    registerResolver(ControlResolver::resolveField,
       Opcodes.GETSTATIC, Opcodes.PUTSTATIC, Opcodes.GETFIELD, Opcodes.PUTFIELD);
-    registerResolver(KrypixControlResolver::resolveInvoke,
+    registerResolver(ControlResolver::resolveInvoke,
       Opcodes.INVOKEVIRTUAL, Opcodes.INVOKESPECIAL, Opcodes.INVOKESTATIC, Opcodes.INVOKEINTERFACE);
-    registerResolver(KrypixControlResolver::resolveDynamic, Opcodes.INVOKEDYNAMIC);
-    registerResolver(KrypixControlResolver::resolveNew, Opcodes.NEW);
-    registerResolver(KrypixControlResolver::resolveNewArray,
+    registerResolver(ControlResolver::resolveDynamic, Opcodes.INVOKEDYNAMIC);
+    registerResolver(ControlResolver::resolveNew, Opcodes.NEW);
+    registerResolver(ControlResolver::resolveNewArray,
       Opcodes.NEWARRAY, Opcodes.ANEWARRAY, Opcodes.MULTIANEWARRAY);
     registerResolver(IRArrayLength::new, Opcodes.ARRAYLENGTH);
-    registerResolver(KrypixControlResolver::resolveCheckcast, Opcodes.CHECKCAST);
-    registerResolver(KrypixControlResolver::resolveInstanceof, Opcodes.INSTANCEOF);
+    registerResolver(ControlResolver::resolveCheckcast, Opcodes.CHECKCAST);
+    registerResolver(ControlResolver::resolveInstanceof, Opcodes.INSTANCEOF);
     registerResolver(IRMonitorEnter::new, Opcodes.MONITORENTER);
     registerResolver(IRMonitorExit::new, Opcodes.MONITOREXIT);
-    registerResolver(KrypixControlResolver::resolveThrow, Opcodes.ATHROW);
+    registerResolver(ControlResolver::resolveThrow, Opcodes.ATHROW);
   }
 
   private final AppView appView;
@@ -121,12 +120,12 @@ public final class KrypixControlResolver {
   private CodeBlock currentBlock;
   private LabelNode latestLabel;
 
-  public KrypixControlResolver(AppView appView, KrypixMethod method) {
+  public ControlResolver(AppView appView, KrypixMethod method) {
     this.appView = appView;
     this.method = method;
   }
 
-  private static void registerResolver(BiConsumer<KrypixControlResolver, AbstractInsnNode> resolver, int opcode) {
+  private static void registerResolver(BiConsumer<ControlResolver, AbstractInsnNode> resolver, int opcode) {
     RESOLVERS.put(opcode, resolver);
   }
 
@@ -134,7 +133,7 @@ public final class KrypixControlResolver {
     RESOLVERS.put(opcode, (resolver, instruction) -> resolver.addCode(factory.get()));
   }
 
-  private static void registerResolver(BiConsumer<KrypixControlResolver, AbstractInsnNode> resolver, int... opcodes) {
+  private static void registerResolver(BiConsumer<ControlResolver, AbstractInsnNode> resolver, int... opcodes) {
     for (int opcode : opcodes) registerResolver(resolver, opcode);
   }
 
@@ -304,7 +303,7 @@ public final class KrypixControlResolver {
         );
       }
 
-      RESOLVERS.getOrDefault(instruction.getOpcode(), KrypixControlResolver::resolveUnknown)
+      RESOLVERS.getOrDefault(instruction.getOpcode(), ControlResolver::resolveUnknown)
         .accept(this, instruction);
     }
     configureCatchBlocks();
@@ -369,12 +368,7 @@ public final class KrypixControlResolver {
     Preconditions.checkArgument(insnNode instanceof LdcInsnNode, "Expected LdcInsnNode, got %s", insnNode);
 
     LdcInsnNode ldcInsnNode = (LdcInsnNode) insnNode;
-    if (ldcInsnNode.cst instanceof ConstantDynamic) {
-      // TODO: Resolve constant dynamic
-      addCode(new IRUnresolved(new LdcInsnNode(ldcInsnNode.cst)));
-    } else {
-      addCode(mapConst(ldcInsnNode.cst));
-    }
+    addCode(mapConst(ldcInsnNode.cst));
   }
 
   private void resolveVar(AbstractInsnNode insnNode) {
@@ -528,22 +522,22 @@ public final class KrypixControlResolver {
     IRTerminatal terminatal;
 
     switch (insnNode.getOpcode()) {
-      case Opcodes.IFEQ -> terminatal = new IRBranchIf(IRBranchIf.Operator.EQ, currentBlock, targetBlock);
-      case Opcodes.IFNE -> terminatal = new IRBranchIf(IRBranchIf.Operator.NE, currentBlock, targetBlock);
-      case Opcodes.IFLT -> terminatal = new IRBranchIf(IRBranchIf.Operator.LT, currentBlock, targetBlock);
-      case Opcodes.IFGE -> terminatal = new IRBranchIf(IRBranchIf.Operator.GE, currentBlock, targetBlock);
-      case Opcodes.IFGT -> terminatal = new IRBranchIf(IRBranchIf.Operator.GT, currentBlock, targetBlock);
-      case Opcodes.IFLE -> terminatal = new IRBranchIf(IRBranchIf.Operator.LE, currentBlock, targetBlock);
-      case Opcodes.IF_ICMPEQ -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_EQ, currentBlock, targetBlock);
-      case Opcodes.IF_ICMPNE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_NE, currentBlock, targetBlock);
-      case Opcodes.IF_ICMPLT -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_LT, currentBlock, targetBlock);
-      case Opcodes.IF_ICMPGE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_GE, currentBlock, targetBlock);
-      case Opcodes.IF_ICMPGT -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_GT, currentBlock, targetBlock);
-      case Opcodes.IF_ICMPLE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_LE, currentBlock, targetBlock);
-      case Opcodes.IF_ACMPEQ -> terminatal = new IRBranchIf(IRBranchIf.Operator.ACMP_EQ, currentBlock, targetBlock);
-      case Opcodes.IF_ACMPNE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ACMP_NE, currentBlock, targetBlock);
-      case Opcodes.IFNULL -> terminatal = new IRBranchIf(IRBranchIf.Operator.NULL, currentBlock, targetBlock);
-      case Opcodes.IFNONNULL -> terminatal = new IRBranchIf(IRBranchIf.Operator.NONNULL, currentBlock, targetBlock);
+      case Opcodes.IFEQ -> terminatal = new IRBranchIf(IRBranchIf.Operator.EQ, targetBlock, currentBlock);
+      case Opcodes.IFNE -> terminatal = new IRBranchIf(IRBranchIf.Operator.NE, targetBlock, currentBlock);
+      case Opcodes.IFLT -> terminatal = new IRBranchIf(IRBranchIf.Operator.LT, targetBlock, currentBlock);
+      case Opcodes.IFGE -> terminatal = new IRBranchIf(IRBranchIf.Operator.GE, targetBlock, currentBlock);
+      case Opcodes.IFGT -> terminatal = new IRBranchIf(IRBranchIf.Operator.GT, targetBlock, currentBlock);
+      case Opcodes.IFLE -> terminatal = new IRBranchIf(IRBranchIf.Operator.LE, targetBlock, currentBlock);
+      case Opcodes.IF_ICMPEQ -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_EQ, targetBlock, currentBlock);
+      case Opcodes.IF_ICMPNE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_NE, targetBlock, currentBlock);
+      case Opcodes.IF_ICMPLT -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_LT, targetBlock, currentBlock);
+      case Opcodes.IF_ICMPGE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_GE, targetBlock, currentBlock);
+      case Opcodes.IF_ICMPGT -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_GT, targetBlock, currentBlock);
+      case Opcodes.IF_ICMPLE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ICMP_LE, targetBlock, currentBlock);
+      case Opcodes.IF_ACMPEQ -> terminatal = new IRBranchIf(IRBranchIf.Operator.ACMP_EQ, targetBlock, currentBlock);
+      case Opcodes.IF_ACMPNE -> terminatal = new IRBranchIf(IRBranchIf.Operator.ACMP_NE, targetBlock, currentBlock);
+      case Opcodes.IFNULL -> terminatal = new IRBranchIf(IRBranchIf.Operator.NULL, targetBlock, currentBlock);
+      case Opcodes.IFNONNULL -> terminatal = new IRBranchIf(IRBranchIf.Operator.NONNULL, targetBlock, currentBlock);
       default -> throw new IllegalArgumentException("Unexpected opcode: " + insnNode.getOpcode());
     }
 
@@ -720,7 +714,7 @@ public final class KrypixControlResolver {
     Preconditions.checkArgument(insnNode instanceof TypeInsnNode, "Expected TypeInsnNode, got %s", insnNode);
 
     TypeInsnNode typeInsnNode = (TypeInsnNode) insnNode;
-    addCode(new IRNew(appView.parseTypeRef("L" + typeInsnNode.desc + ";")));
+    addCode(new IRNew(appView.parseTypeRefFromInternalName(typeInsnNode.desc)));
   }
 
   private void resolveNewArray(AbstractInsnNode insnNode) {
@@ -729,8 +723,8 @@ public final class KrypixControlResolver {
 
     TypeRef elementType = switch (insnNode.getOpcode()) {
       case Opcodes.NEWARRAY -> TypeRef.fromAsmOpcode(((IntInsnNode) insnNode).operand);
-      case Opcodes.ANEWARRAY -> appView.parseTypeRef("L" + ((TypeInsnNode) insnNode).desc + ";");
-      case Opcodes.MULTIANEWARRAY -> appView.parseTypeRef("L" + ((MultiANewArrayInsnNode) insnNode).desc + ";");
+      case Opcodes.ANEWARRAY -> appView.parseTypeRefFromInternalName(((TypeInsnNode) insnNode).desc);
+      case Opcodes.MULTIANEWARRAY -> appView.parseTypeRefFromInternalName(((MultiANewArrayInsnNode) insnNode).desc);
       default -> throw new IllegalStateException("Unexpected opcode: " + insnNode.getOpcode());
     };
 
@@ -745,14 +739,14 @@ public final class KrypixControlResolver {
     Preconditions.checkArgument(insnNode instanceof TypeInsnNode, "Expected TypeInsnNode, got %s", insnNode);
 
     TypeInsnNode typeInsnNode = (TypeInsnNode) insnNode;
-    addCode(new IRCheckCast(appView.parseTypeRef("L" + typeInsnNode.desc + ";")));
+    addCode(new IRCheckCast(appView.parseTypeRefFromInternalName(typeInsnNode.desc)));
   }
 
   private void resolveInstanceof(AbstractInsnNode insnNode) {
     Preconditions.checkArgument(insnNode instanceof TypeInsnNode, "Expected TypeInsnNode, got %s", insnNode);
 
     TypeInsnNode typeInsnNode = (TypeInsnNode) insnNode;
-    addCode(new IRInstanceOf(appView.parseTypeRef("L" + typeInsnNode.desc + ";")));
+    addCode(new IRInstanceOf(appView.parseTypeRefFromInternalName(typeInsnNode.desc)));
   }
 
   private void resolveThrow(AbstractInsnNode insnNode) {

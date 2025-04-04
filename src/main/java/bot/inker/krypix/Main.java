@@ -1,6 +1,6 @@
 package bot.inker.krypix;
 
-import bot.inker.krypix.asm.KrypixControlStringer;
+import bot.inker.krypix.asm.ControlStringer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,29 +33,33 @@ public class Main {
 
     obfuscate.appView().build();
 
-    obfuscate.appView().allClasses().forEach(clazz -> {
-      if (!clazz.scope().mutable()) {
-        return;
-      }
-      Path path = Paths.get("dump", clazz.name());
-      for (int i = 0; i < clazz.methods().size(); i++) {
-        KrypixMethod method = clazz.methods().get(i);
-        if (!method.hasCode()) {
-          continue;
-        }
+    obfuscate.appView().finish();
 
-        String methodString = new KrypixControlStringer(obfuscate.appView(), method).stringer();
-        try {
-          Path outputPath = path.resolve(i + "_" + method.name() + ".txt");
-          Files.createDirectories(outputPath.getParent());
-          try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
-            writer.write(methodString);
+    obfuscate.appView().allClasses()
+      .filter(clazz -> clazz.scope().mutable())
+      .forEach(clazz -> {
+        Path path = Paths.get("dump", clazz.name());
+        for (int i = 0; i < clazz.methods().size(); i++) {
+          KrypixMethod method = clazz.methods().get(i);
+          if (!method.hasCode()) {
+            continue;
           }
-        } catch (IOException e) {
-          logger.error("Failed to write method string to file at {} {}", clazz, method, e);
+
+          String methodString = new ControlStringer(obfuscate.appView(), method).stringer();
+          try {
+            Path outputPath = path.resolve(i + "_" + method.name() + ".txt");
+            Files.createDirectories(outputPath.getParent());
+            try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
+              writer.write(methodString);
+            }
+          } catch (IOException e) {
+            logger.error("Failed to write method string to file at {} {}", clazz, method, e);
+          }
         }
-      }
-    });
+      });
+
+    obfuscate.appView().scope(KrypixStandards.SCOPE_PROGRAM)
+        .save(new File("output"));
     System.out.println();
   }
 }

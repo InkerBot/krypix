@@ -26,6 +26,6 @@ public final class IRMathBinary implements IRMath {
   }
 
   public enum Operation {
-    ADD, SUB, MUL, DIV, REM, SHL, SHR, USHR, AND, OR, XOR
+    ADD, SUB, MUL, DIV, REM
   }
 }

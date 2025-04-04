@@ -1,6 +1,8 @@
 package bot.inker.krypix;
 
-import bot.inker.krypix.asm.KrypixControlResolver;
+import bot.inker.krypix.asm.ControlRebuild;
+import bot.inker.krypix.asm.ControlResolver;
+import bot.inker.krypix.asm.HierarchyClassWriter;
 import bot.inker.krypix.asm.locator.FieldLocator;
 import bot.inker.krypix.asm.locator.MethodLocator;
 import bot.inker.krypix.ir.ref.*;
@@ -8,6 +10,7 @@ import bot.inker.krypix.loader.AppLoader;
 import bot.inker.krypix.util.StopWatchUtil;
 import bot.inker.krypix.util.uncheck.UncheckUtil;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
@@ -18,10 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public final class AppView {
@@ -49,6 +49,10 @@ public final class AppView {
 
   public KrypixScope scope(String name) {
     return scopes.computeIfAbsent(name, it -> new KrypixScope(it, db));
+  }
+
+  public ClassHierarchy hierarchy() {
+    return hierarchy;
   }
 
   public Stream<KrypixResource> getResources(String shortPath) {
@@ -99,7 +103,14 @@ public final class AppView {
   }
 
   public TypeRef parseTypeRef(String desc) {
-    var type = Type.getType(desc);
+    return parseTypeRef(Type.getType(desc));
+  }
+
+  public TypeRef parseTypeRefFromInternalName(String internalName) {
+    return parseTypeRef(Type.getObjectType(internalName));
+  }
+
+  public TypeRef parseTypeRef(Type type) {
     switch (type.getSort()) {
       case Type.VOID, Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT, Type.FLOAT, Type.LONG, Type.DOUBLE -> {
         return TypeRef.fromAsmSort(type.getSort());
@@ -213,15 +224,52 @@ public final class AppView {
 
     this.hierarchy = new ClassHierarchy(this);
 
-    StopWatchUtil.infoStopWatch(logger, "Resolving methods", () -> scopes.values().stream()
+    StopWatchUtil.infoStopWatch(logger, "Parsing methods body", () -> scopes.values().stream()
       .filter(KrypixScope::mutable)
       .forEach(scope ->
         scope.classPool().all().stream()
           .flatMap(clazz -> clazz.methods().stream())
           .filter(KrypixMethod::hasCode)
           .forEach(method -> {
-            method.body(new KrypixControlResolver(this, method).resolve());
+            method.body(new ControlResolver(this, method).resolve());
           })
       ));
+  }
+
+  public void finish() {
+    StopWatchUtil.infoStopWatch(logger, "Apply classes body", () -> scopes.values().stream()
+      .filter(KrypixScope::mutable)
+      .flatMap(scope -> scope.classPool().all().stream())
+      .forEach(KrypixClass::applyMetadata)
+    );
+
+    StopWatchUtil.infoStopWatch(logger, "Apply methods body", () -> scopes.values().stream()
+      .filter(KrypixScope::mutable)
+      .flatMap(scope -> scope.classPool().all().stream())
+      .flatMap(clazz -> clazz.methods().stream())
+      .filter(KrypixMethod::hasCode)
+      .forEach(method -> new ControlRebuild(this, method).rebuild())
+    );
+
+    StopWatchUtil.infoStopWatch(logger, "Apply classes body", () -> scopes.values().stream()
+        .filter(KrypixScope::mutable)
+        .flatMap(scope -> scope.classPool().all().stream())
+        .forEach(clazz -> {
+          byte[] bytes;
+
+          try {
+            ClassWriter writer = new HierarchyClassWriter(this, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+            clazz.classNode().accept(writer);
+            bytes = writer.toByteArray();
+          } catch (Exception e) {
+            logger.error("Failed to write class {}, use falling back method, which may cause exception", clazz, e);
+
+            ClassWriter writer = new HierarchyClassWriter(this, 0);
+            clazz.classNode().accept(writer);
+            bytes = writer.toByteArray();
+          }
+          clazz.resource().setBytes(bytes);
+        })
+    );
   }
 }

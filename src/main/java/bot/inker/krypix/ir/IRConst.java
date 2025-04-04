@@ -188,7 +188,7 @@ public final class IRConst implements IRAbstract {
   }
 
   public enum Type {
-    NULL(BaseFrameType.OBJECT), INT(BaseFrameType.INT), FLOAT(BaseFrameType.FLOAT), LONG(BaseFrameType.LONG),
+    NULL(BaseFrameType.OBJECT), INT(BaseFrameType.INT), LONG(BaseFrameType.LONG), FLOAT(BaseFrameType.FLOAT),
     DOUBLE(BaseFrameType.DOUBLE), STRING(BaseFrameType.OBJECT), TYPE(BaseFrameType.OBJECT),
     METHOD_TYPE(BaseFrameType.OBJECT), HANDLE(BaseFrameType.OBJECT), DYNAMIC(null);
 

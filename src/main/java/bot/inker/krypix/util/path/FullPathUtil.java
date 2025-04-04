@@ -26,12 +26,20 @@ public final class FullPathUtil {
    * @param fullPath the full path
    * @return the path part of the full path
    */
-  public static String getPath(String fullPath) {
+  public static String getShortPath(String fullPath) {
     int lastIndexOf = fullPath.lastIndexOf('!');
     if (lastIndexOf == -1) {
       return removeLeadingSlash(fullPath);
     }
     return removeLeadingSlash(fullPath.substring(lastIndexOf + 1));
+  }
+
+  public static String getPreviousFullPath(String fullPath) {
+    int lastIndexOf = fullPath.lastIndexOf('!');
+    if (lastIndexOf == -1) {
+      throw new IllegalArgumentException("No path found in full path: " + fullPath);
+    }
+    return fullPath.substring(0, lastIndexOf);
   }
 
   public static String removeLeadingSlash(String path) {

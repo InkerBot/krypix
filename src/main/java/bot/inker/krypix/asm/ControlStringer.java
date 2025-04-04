@@ -12,13 +12,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public final class KrypixControlStringer {
+public final class ControlStringer {
   private final AppView appView;
   private final KrypixMethod method;
   private final Map<CodeBlock, String> blockNames = new HashMap<>();
   private final Function<CodeBlock, String> blockNameFunction = blockNames::get;
 
-  public KrypixControlStringer(AppView appView, KrypixMethod method) {
+  public ControlStringer(AppView appView, KrypixMethod method) {
     this.appView = appView;
     this.method = method;
   }

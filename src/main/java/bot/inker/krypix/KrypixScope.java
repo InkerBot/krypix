@@ -1,8 +1,12 @@
 package bot.inker.krypix;
 
+import bot.inker.krypix.common.attachment.AttachmentKey;
 import bot.inker.krypix.loader.ClassPool;
 import bot.inker.krypix.loader.ResourcePool;
 import org.rocksdb.RocksDB;
+
+import java.io.File;
+import java.util.List;
 
 public final class KrypixScope {
   private final String name;
@@ -35,5 +39,9 @@ public final class KrypixScope {
 
   public void mutable(boolean mutable) {
     this.mutable = mutable;
+  }
+
+  public void save(File output) {
+    resourcePool.save(output);
   }
 }
