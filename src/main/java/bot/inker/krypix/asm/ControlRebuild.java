@@ -57,20 +57,12 @@ public final class ControlRebuild {
 
       insnList.add(labelNode);
 
-      for (var exceptionHandler : codeBlock.exceptionHandlers()) {
-        tryCatchBlocks.add(new TryCatchBlockNode(
-          labelNode,
-          nextLabel,
-          exceptionHandler.handler().requireAttachment(REBUILD_LABEL),
-          exceptionHandler.catchType() == null ? null : exceptionHandler.catchType().name()
-        ));
-      }
-
       codeBlock.getAttachment(CodeBlockAttachments.LINE_NUMBER).ifPresent(lineNumber -> {
         var lineNumberNode = new LineNumberNode(lineNumber, labelNode);
         insnList.add(lineNumberNode);
       });
 
+      int codeCountBefore = insnList.size();
       for (var instruction : codeBlock.instructions()) {
         if (instruction instanceof IRNop || instruction instanceof IRDocument) {
           //
@@ -193,6 +185,7 @@ public final class ControlRebuild {
           throw new UnsupportedOperationException("Unsupported instruction type: " + instruction.getClass().getSimpleName());
         }
       }
+      boolean addAnyCode = (insnList.size() != codeCountBefore);
 
       if (codeBlock.terminatal() instanceof IRGoto ir) {
         if (ir.target() != nextBlock) {
@@ -253,6 +246,20 @@ public final class ControlRebuild {
         insnList.add(new InsnNode(Opcodes.ATHROW));
       } else {
         throw new UnsupportedOperationException("Unsupported terminatal type: " + codeBlock.terminatal().getClass().getSimpleName());
+      }
+
+      // fix #1: Kunit-kb9 ClassFormatError: Illegal exception table range
+      // if a method has a try-catch block, it must have at least one instruction
+      // otherwise, the exception catch range will be empty and cause a ClassFormatError
+      if (addAnyCode) {
+        for (var exceptionHandler : codeBlock.exceptionHandlers()) {
+          tryCatchBlocks.add(new TryCatchBlockNode(
+            labelNode,
+            nextLabel,
+            exceptionHandler.handler().requireAttachment(REBUILD_LABEL),
+            exceptionHandler.catchType() == null ? null : exceptionHandler.catchType().name()
+          ));
+        }
       }
 
       if (nextBlock == null && nextLabel != null) {
