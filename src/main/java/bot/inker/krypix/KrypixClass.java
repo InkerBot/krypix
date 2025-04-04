@@ -3,6 +3,7 @@ package bot.inker.krypix;
 import bot.inker.krypix.common.WithModifier;
 import bot.inker.krypix.common.attachment.AttachmentContainer;
 import bot.inker.krypix.common.attachment.WithAttachment;
+import bot.inker.krypix.util.path.FullPathUtil;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -59,6 +60,7 @@ public final class KrypixClass implements WithModifier.Mutable, WithAttachment.C
   }
 
   public void name(String name) {
+    resource.path(resource.path().replace(this.classNode.name, name));
     this.classNode.name = name;
   }
 
